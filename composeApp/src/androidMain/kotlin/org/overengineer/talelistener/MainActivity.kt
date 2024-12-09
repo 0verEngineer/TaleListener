@@ -3,8 +3,7 @@ package org.overengineer.talelistener
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.isSystemInDarkTheme
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 
@@ -16,13 +15,10 @@ class MainActivity : ComponentActivity() {
         Napier.base(DebugAntilog())
 
         setContent {
-            App()
+            App(
+                darkTheme = isSystemInDarkTheme(),
+                dynamicColor = true
+            )
         }
     }
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }

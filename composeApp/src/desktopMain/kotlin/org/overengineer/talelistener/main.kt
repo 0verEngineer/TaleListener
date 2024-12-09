@@ -1,7 +1,6 @@
 package org.overengineer.talelistener
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.github.aakira.napier.DebugAntilog
@@ -14,12 +13,10 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "TaleListener",
     ) {
-        App()
+        App(
+            darkTheme = isSystemInDarkTheme(), // Todo: test on MacOS (with auto switching) and Windows
+            dynamicColor = false
+        )
     }
 }
 
-@Preview
-@Composable
-fun AppDesktopPreview() {
-    App()
-}

@@ -14,14 +14,14 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
@@ -36,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -224,7 +223,7 @@ class LoginScreen: Screen {
                         }
 
                         CircularProgressIndicator(
-                            color = Color.Blue, // todo theming
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 4.dp,
                             modifier = Modifier
                                 .padding(vertical = 16.dp)
@@ -238,10 +237,10 @@ class LoginScreen: Screen {
                             .alpha(0.5f)
                             .padding(bottom = 32.dp),
                         text = "Server is required", // todo localization
-                        style = MaterialTheme.typography.body2.copy(
+                        style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colors.onBackground,
+                            color = MaterialTheme.colorScheme.onBackground,
                             letterSpacing = 0.5.sp,
                             lineHeight = 32.sp
                         ),
