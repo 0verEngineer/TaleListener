@@ -1,0 +1,15 @@
+<resources>
+    <string name="login">Login</string>
+    <string name="serverUrl">Server URL</string>
+    <string name="username">Benutzername</string>
+    <string name="showPassword">Passwort anzeigen</string>
+    <string name="password">Passwort</string>
+    <string name="serverRequired">Es ist ein Audiobookshelf Server nötig</string>
+    <string name="hostDown">Host ist nicht erreichbar</string>
+    <string name="hostUrlMissing">Host URL fehlt</string>
+    <string name="passwordMissing">Passwort fehlt</string>
+    <string name="usernameMissing">Benutzername fehlt</string>
+    <string name="credentialsInvalid">Zugangsdaten sind nicht valide</string>
+    <string name="hostInvalid">Fehlerhafte Host URL</string>
+    <string name="connectionError">Verbindungsfehler</string>
+</resources>

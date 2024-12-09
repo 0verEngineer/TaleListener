@@ -50,10 +50,25 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.dokar.sonner.ToastType
 import com.dokar.sonner.Toaster
 import com.dokar.sonner.rememberToasterState
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.overengineer.talelistener.domain.error.LoginError
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel.LoginState
+import talelistener.composeapp.generated.resources.Res
+import talelistener.composeapp.generated.resources.connectionError
+import talelistener.composeapp.generated.resources.credentialsInvalid
+import talelistener.composeapp.generated.resources.hostDown
+import talelistener.composeapp.generated.resources.hostInvalid
+import talelistener.composeapp.generated.resources.hostUrlMissing
+import talelistener.composeapp.generated.resources.login
+import talelistener.composeapp.generated.resources.password
+import talelistener.composeapp.generated.resources.passwordMissing
+import talelistener.composeapp.generated.resources.serverRequired
+import talelistener.composeapp.generated.resources.serverUrl
+import talelistener.composeapp.generated.resources.showPassword
+import talelistener.composeapp.generated.resources.username
+import talelistener.composeapp.generated.resources.usernameMissing
 
 class LoginScreen: Screen {
     @Composable
@@ -73,6 +88,14 @@ class LoginScreen: Screen {
 
         var showPassword by remember { mutableStateOf(false) }
 
+        val hostDown = stringResource(Res.string.hostDown)
+        val hostUrlMissing = stringResource(Res.string.hostUrlMissing)
+        val passwordMissing = stringResource(Res.string.passwordMissing)
+        val usernameMissing = stringResource(Res.string.usernameMissing)
+        val invalidCredentials = stringResource(Res.string.credentialsInvalid)
+        val invalidHostUrl = stringResource(Res.string.hostInvalid)
+        val connectionError = stringResource(Res.string.connectionError)
+
         LaunchedEffect(loginState) {
 
             if (loginState is LoginState.Loading) {
@@ -85,8 +108,18 @@ class LoginScreen: Screen {
                     navigator.push(HomeScreen())
                 }
                 is LoginState.Error -> loginError?.let {
+                    val message = when (it) {
+                        LoginError.InternalError -> hostDown
+                        LoginError.MissingCredentialsHost -> hostUrlMissing
+                        LoginError.MissingCredentialsPassword -> passwordMissing
+                        LoginError.MissingCredentialsUsername -> usernameMissing
+                        LoginError.Unauthorized -> invalidCredentials
+                        LoginError.InvalidCredentialsHost -> invalidHostUrl
+                        LoginError.NetworkError -> connectionError
+                    }
+
                     toaster.show(
-                        message = it.makeText(),
+                        message = message,
                         type = ToastType.Error
                     )
                 }
@@ -114,7 +147,7 @@ class LoginScreen: Screen {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
-                            text = "Login",// todo localization
+                            text = stringResource(Res.string.login),
                             style = TextStyle(
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.SemiBold,
@@ -129,7 +162,7 @@ class LoginScreen: Screen {
                             value = host,
                             onValueChange = { viewModel.setHost(it.trim()) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                            label = { Text("Server URL") }, // todo localization
+                            label = { Text(stringResource(Res.string.serverUrl)) },
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
                             modifier = Modifier
@@ -140,7 +173,7 @@ class LoginScreen: Screen {
                         OutlinedTextField(
                             value = username,
                             onValueChange = { viewModel.setUsername(it.trim()) },
-                            label = { Text("Username") }, // todo localization
+                            label = { Text(stringResource(Res.string.username)) },
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
                             modifier = Modifier
@@ -158,12 +191,12 @@ class LoginScreen: Screen {
                                 ) {
                                     Icon(
                                         imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                        contentDescription = "Show password", // todo localization
+                                        contentDescription = stringResource(Res.string.showPassword),
                                     )
                                 }
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            label = { Text("Password") }, // todo localization
+                            label = { Text(stringResource(Res.string.password)) },
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
                             modifier = Modifier
@@ -193,7 +226,7 @@ class LoginScreen: Screen {
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
-                                        text = "Connect", // todo localization
+                                        text = stringResource(Res.string.login),
                                         fontSize = 16.sp,
                                     )
                                 }
@@ -236,7 +269,7 @@ class LoginScreen: Screen {
                             .align(Alignment.BottomCenter)
                             .alpha(0.5f)
                             .padding(bottom = 32.dp),
-                        text = "Server is required", // todo localization
+                        text = stringResource(Res.string.serverRequired),
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Normal,
@@ -250,15 +283,4 @@ class LoginScreen: Screen {
             }
         )
     }
-}
-
-// todo localization
-private fun LoginError.makeText() = when (this) {
-    LoginError.InternalError -> "Host is down"
-    LoginError.MissingCredentialsHost -> "Host URL is missing"
-    LoginError.MissingCredentialsPassword -> "Password is missing"
-    LoginError.MissingCredentialsUsername -> "Username is missing"
-    LoginError.Unauthorized -> "Credentials are invalid"
-    LoginError.InvalidCredentialsHost -> "Invalid host URL"
-    LoginError.NetworkError -> "Connection error"
 }

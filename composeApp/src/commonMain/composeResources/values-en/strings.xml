@@ -1,0 +1,15 @@
+<resources>
+    <string name="login">Login</string>
+    <string name="serverUrl">Server URL</string>
+    <string name="username">Username</string>
+    <string name="showPassword">Show password</string>
+    <string name="password">Password</string>
+    <string name="serverRequired">Audiobookshelf server is required</string>
+    <string name="hostDown">Host is down</string>
+    <string name="hostUrlMissing">Host URL is missing</string>
+    <string name="passwordMissing">Password is missing</string>
+    <string name="usernameMissing">Username is missing</string>
+    <string name="credentialsInvalid">Credentials are invalid</string>
+    <string name="hostInvalid">Invalid host URL</string>
+    <string name="connectionError">Connection error</string>
+</resources>
