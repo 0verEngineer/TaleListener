@@ -2,10 +2,13 @@ package org.overengineer.talelistener.di
 
 import io.github.aakira.napier.Napier
 import org.koin.core.context.startKoin
+import org.koin.dsl.KoinAppDeclaration
 
-fun initKoin(){
+// Todo: test on ios, this is eventually not needed
+fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
+    Napier.d("Starting Koin")
     startKoin {
-        Napier.d("Starting Koin")
-        modules(sharedModule)
+        appDeclaration()
+        modules(commonModule())
     }
 }

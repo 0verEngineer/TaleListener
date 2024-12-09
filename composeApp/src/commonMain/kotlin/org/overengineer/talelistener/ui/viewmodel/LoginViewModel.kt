@@ -6,6 +6,7 @@
  * Modifications:
  * - Updated package statement and adjusted imports.
  * - Changes for kotlin multiplatform
+ * - Call onLoginFailure for every case in login function to always have correct _loginError
  */
 
 package org.overengineer.talelistener.ui.viewmodel
@@ -68,19 +69,19 @@ class LoginViewModel(
 
             val hostValue = host.value
             if (hostValue.isBlank()) {
-                _loginState.value = LoginState.Error(ApiError.MissingCredentialsHost)
+                _loginState.value = onLoginFailure(ApiError.MissingCredentialsHost)
                 return@launch
             }
 
             val usernameValue = username.value
             if (usernameValue.isBlank()) {
-                _loginState.value = LoginState.Error(ApiError.MissingCredentialsUsername)
+                _loginState.value = onLoginFailure(ApiError.MissingCredentialsUsername)
                 return@launch
             }
 
             val passwordValue = password.value
             if (passwordValue.isBlank()) {
-                _loginState.value = LoginState.Error(ApiError.MissingCredentialsPassword)
+                _loginState.value = onLoginFailure(ApiError.MissingCredentialsPassword)
                 return@launch
             }
 

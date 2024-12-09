@@ -54,11 +54,14 @@ kotlin {
             implementation(libs.kotlinx.datetime.v061)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.napier)
+            implementation(libs.voyager.navigator)
+            implementation(libs.sonner)
+            implementation(libs.material.icons.extended)
         }
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            //implementation(libs.koin.android)
+            implementation(libs.koin.android)
             //implementation(libs.koin.androidx.compose)
             implementation(libs.ktor.client.okhttp) // OkHttp engine for Android
         }

@@ -2,17 +2,21 @@ package org.overengineer.talelistener
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
-import org.koin.compose.koinInject
-import org.overengineer.talelistener.ui.screen.LoginScreen
-import org.overengineer.talelistener.ui.viewmodel.LoginViewModel
+import cafe.adriel.voyager.navigator.Navigator
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.KoinApplication
+import org.overengineer.talelistener.di.commonModule
+import org.overengineer.talelistener.ui.screen.SplashScreen
 
 
+@Preview
 @Composable
 fun App() {
-    MaterialTheme {
-        // Inject LoginViewModel using Koin
-        val loginViewModel: LoginViewModel = koinInject()
-        // Display the LoginScreen
-        LoginScreen(loginViewModel)
+    KoinApplication(application = {
+        modules(commonModule())
+    }) {
+        MaterialTheme {
+            Navigator(screen = SplashScreen())
+        }
     }
 }

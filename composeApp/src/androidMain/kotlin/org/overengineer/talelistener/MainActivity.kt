@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
-import org.overengineer.talelistener.di.initKoin
 
 class MainActivity : ComponentActivity() {
 
@@ -15,8 +14,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         Napier.base(DebugAntilog())
-
-        initKoin()
 
         setContent {
             App()

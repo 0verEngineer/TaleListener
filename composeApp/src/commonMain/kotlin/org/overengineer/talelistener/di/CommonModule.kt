@@ -25,10 +25,10 @@ import org.overengineer.talelistener.content.LissenMediaProvider
 import org.overengineer.talelistener.content.cache.LocalCacheRepository
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel
+import org.overengineer.talelistener.ui.viewmodel.SettingsScreenViewModel
+import org.overengineer.talelistener.ui.viewmodel.SplashScreenViewModel
 
-
-val sharedModule = module {
-
+fun commonModule() = module {
     single { TaleListenerSharedPreferences() }
 
     single { RequestHeadersProvider(get()) }
@@ -106,7 +106,8 @@ val sharedModule = module {
         get(),
         get()
     ) }
+
     single { LoginViewModel(get(), get()) }
+    single { SettingsScreenViewModel() }
+    single { SplashScreenViewModel(get()) }
 }
-
-
