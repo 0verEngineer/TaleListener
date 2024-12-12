@@ -1,113 +1,111 @@
 import kotlin.Boolean;
 
--- This file defines the detailed_books, book_files, book_chapters, media_progress tables and related queries.
+-- This file defines the book, bookFile, bookChapter, mediaProgress tables and related queries.
 
-CREATE TABLE detailed_books (
+CREATE TABLE book (
   id TEXT NOT NULL PRIMARY KEY,
   title TEXT NOT NULL,
   author TEXT,
   duration INTEGER NOT NULL,
   libraryId TEXT,
-  FOREIGN KEY(libraryId) REFERENCES libraries(id) ON DELETE CASCADE
+  FOREIGN KEY(libraryId) REFERENCES library(id) ON DELETE CASCADE
 );
 
-CREATE TABLE book_files (
-  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  bookFileId TEXT NOT NULL,
+CREATE TABLE bookFile (
+  id TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   duration REAL NOT NULL,
   mimeType TEXT NOT NULL,
   bookId TEXT NOT NULL,
-  FOREIGN KEY(bookId) REFERENCES detailed_books(id) ON DELETE CASCADE
+  FOREIGN KEY(bookId) REFERENCES book(id) ON DELETE CASCADE
 );
 
-CREATE INDEX book_files_bookId_idx ON book_files(bookId);
+CREATE INDEX book_files_bookId_idx ON bookFile(bookId);
 
-CREATE TABLE book_chapters (
-  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  bookChapterId TEXT NOT NULL,
+CREATE TABLE bookChapter (
+  id TEXT NOT NULL PRIMARY KEY,
   duration REAL NOT NULL,
   start REAL NOT NULL,
   end REAL NOT NULL,
   title TEXT NOT NULL,
   bookId TEXT NOT NULL,
-  FOREIGN KEY(bookId) REFERENCES detailed_books(id) ON DELETE CASCADE
+  FOREIGN KEY(bookId) REFERENCES book(id) ON DELETE CASCADE
 );
 
-CREATE INDEX book_chapters_bookId_idx ON book_chapters(bookId);
+CREATE INDEX book_chapters_bookId_idx ON bookChapter(bookId);
 
-CREATE TABLE media_progress (
+CREATE TABLE mediaProgress (
   bookId TEXT NOT NULL PRIMARY KEY,
   currentTime REAL NOT NULL,
   isFinished INTEGER AS Boolean NOT NULL,
   lastUpdate INTEGER NOT NULL,
-  FOREIGN KEY(bookId) REFERENCES detailed_books(id) ON DELETE CASCADE
+  FOREIGN KEY(bookId) REFERENCES book(id) ON DELETE CASCADE
 );
 
-CREATE INDEX media_progress_bookId_idx ON media_progress(bookId);
+CREATE INDEX media_progress_bookId_idx ON mediaProgress(bookId);
 
 upsertBook:
-INSERT OR REPLACE INTO detailed_books (id, title, author, duration, libraryId)
+INSERT OR REPLACE INTO book (id, title, author, duration, libraryId)
 VALUES (?, ?, ?, ?, ?);
 
 upsertBookFiles:
-INSERT OR REPLACE INTO book_files (bookFileId, name, duration, mimeType, bookId)
+INSERT OR REPLACE INTO bookFile (id, name, duration, mimeType, bookId)
 VALUES (?, ?, ?, ?, ?);
 
 upsertBookChapters:
-INSERT OR REPLACE INTO book_chapters (bookChapterId, duration, start, end, title, bookId)
+INSERT OR REPLACE INTO bookChapter (id, duration, start, end, title, bookId)
 VALUES (?, ?, ?, ?, ?, ?);
 
 upsertMediaProgress:
-INSERT OR REPLACE INTO media_progress (bookId, currentTime, isFinished, lastUpdate)
+INSERT OR REPLACE INTO mediaProgress (bookId, currentTime, isFinished, lastUpdate)
 VALUES (?, ?, ?, ?);
 
 
 fetchCachedBooks:
-SELECT * FROM detailed_books
+SELECT * FROM book
 WHERE (libraryId IS NULL OR libraryId = ?)
 ORDER BY title
 LIMIT ? OFFSET (? * ?);
 
 searchCachedBooks:
-SELECT * FROM detailed_books
+SELECT * FROM book
 WHERE (libraryId IS NULL OR libraryId = ?)
   AND (title LIKE '%' || ? || '%' OR author LIKE '%' || ? || '%')
 ORDER BY title;
 
 fetchRecentlyListenedCachedBooks:
-SELECT detailed_books.*
-FROM detailed_books
-INNER JOIN media_progress ON detailed_books.id = media_progress.bookId
+SELECT book.*
+FROM book
+INNER JOIN mediaProgress ON book.id = mediaProgress.bookId
 WHERE (libraryId IS NULL OR libraryId = ?)
-ORDER BY media_progress.lastUpdate DESC
+ORDER BY mediaProgress.lastUpdate DESC
 LIMIT 10;
 
 fetchCachedBook:
-SELECT detailed_books.*
-FROM detailed_books
+SELECT book.*
+FROM book
 WHERE id = ?;
 
 fetchBook:
-SELECT detailed_books.*
-FROM detailed_books
+SELECT book.*
+FROM book
 WHERE id = ?;
 
 fetchBookIds:
 SELECT id
-FROM detailed_books
+FROM book
 WHERE (libraryId IS NULL OR libraryId = ?);
 
 fetchMediaProgress:
-SELECT * FROM media_progress
+SELECT * FROM mediaProgress
 WHERE bookId = ?;
 
 
 updateMediaProgress:
-UPDATE media_progress
+UPDATE mediaProgress
 SET currentTime = ?, isFinished = ?, lastUpdate = ?
 WHERE bookId = ?;
 
 deleteBook:
-DELETE FROM detailed_books
+DELETE FROM book
 WHERE id = ?;
