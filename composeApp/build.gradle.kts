@@ -1,3 +1,4 @@
+import org.gradle.internal.classpath.Instrumented.systemProperty
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -9,6 +10,15 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.completeKotlin)
+    alias(libs.plugins.sqldelight)
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("org.overengineer")
+        }
+    }
 }
 
 kotlin {
@@ -65,14 +75,17 @@ kotlin {
             implementation(libs.koin.android)
             //implementation(libs.koin.androidx.compose)
             implementation(libs.ktor.client.okhttp) // OkHttp engine for Android
+            implementation(libs.android.driver)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin) // Darwin engine for iOS
+            implementation(libs.native.driver)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java) // Java engine for Desktop
+            implementation(libs.sqlite.driver)
         }
     }
 }

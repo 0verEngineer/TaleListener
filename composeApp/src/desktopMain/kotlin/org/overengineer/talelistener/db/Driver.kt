@@ -1,0 +1,40 @@
+package org.overengineer.talelistener.db
+
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import org.overengineer.Database
+import java.io.File
+import java.util.Properties
+
+actual class DriverFactory {
+    actual fun createDriver(): SqlDriver {
+        val dbPath = getDatabasePath()
+        val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:$dbPath",
+            properties = Properties().apply { put("foreign_keys", "true") }
+        )
+        if (!File(dbPath).exists()) {
+            Database.Schema.create(driver)
+        }
+        return driver
+    }
+
+    private fun getDatabasePath(): String {
+        val appName = "TaleListener"
+
+        val isDev = System.getenv("IS_DEV")?.toBoolean() ?: false
+
+        return if (isDev) {
+            val projectDir = System.getProperty("user.dir") ?: "."
+            "$projectDir/devData/database.db"
+        } else {
+            val homeDir = System.getProperty("user.home")
+            when (val osName = System.getProperty("os.name").lowercase()) {
+                in "mac" -> "$homeDir/Library/Application Support/$appName/database.db"
+                in "win" -> "${System.getenv("APPDATA")}/$appName/database.db"
+                else -> "$homeDir/.config/$appName/database.db"
+            }
+        }.also { path ->
+            File(path).parentFile.mkdirs()
+        }
+    }
+}

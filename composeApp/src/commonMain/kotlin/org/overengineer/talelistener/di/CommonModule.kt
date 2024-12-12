@@ -23,12 +23,15 @@ import org.overengineer.talelistener.channel.audiobookshelf.podcast.converter.Po
 import org.overengineer.talelistener.channel.audiobookshelf.podcast.converter.PodcastSearchItemsConverter
 import org.overengineer.talelistener.content.LissenMediaProvider
 import org.overengineer.talelistener.content.cache.LocalCacheRepository
+import org.overengineer.talelistener.db.DBHolder
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel
 import org.overengineer.talelistener.ui.viewmodel.SettingsScreenViewModel
 import org.overengineer.talelistener.ui.viewmodel.SplashScreenViewModel
 
 fun commonModule() = module {
+    single { DBHolder(get()) }
+
     single { TaleListenerSharedPreferences() }
 
     single { RequestHeadersProvider(get()) }
