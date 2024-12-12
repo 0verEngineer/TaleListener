@@ -2,19 +2,19 @@ import org.overengineer.talelistener.channel.common.LibraryType;
 
 -- This file defines the `library` table and related queries.
 
-CREATE TABLE library (
+CREATE TABLE libraryEntity (
   id TEXT NOT NULL PRIMARY KEY,
   title TEXT NOT NULL,
   type TEXT AS LibraryType NOT NULL
 );
 
 upsertLibraries:
-INSERT OR REPLACE INTO library (id, title, type)
+INSERT OR REPLACE INTO libraryEntity (id, title, type)
 VALUES (?, ?, ?);
 
 fetchLibrary:
-SELECT * FROM library
+SELECT * FROM libraryEntity
 WHERE id = ?;
 
 fetchLibraries:
-SELECT * FROM library;
+SELECT * FROM libraryEntity;

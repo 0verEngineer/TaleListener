@@ -2,110 +2,115 @@ import kotlin.Boolean;
 
 -- This file defines the book, bookFile, bookChapter, mediaProgress tables and related queries.
 
-CREATE TABLE book (
+CREATE TABLE bookEntity (
   id TEXT NOT NULL PRIMARY KEY,
   title TEXT NOT NULL,
   author TEXT,
   duration INTEGER NOT NULL,
   libraryId TEXT,
-  FOREIGN KEY(libraryId) REFERENCES library(id) ON DELETE CASCADE
+  FOREIGN KEY(libraryId) REFERENCES libraryEntity(id) ON DELETE CASCADE
 );
 
-CREATE TABLE bookFile (
+CREATE TABLE bookFileEntity (
   id TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   duration REAL NOT NULL,
   mimeType TEXT NOT NULL,
   bookId TEXT NOT NULL,
-  FOREIGN KEY(bookId) REFERENCES book(id) ON DELETE CASCADE
+  FOREIGN KEY(bookId) REFERENCES bookEntity(id) ON DELETE CASCADE
 );
 
-CREATE INDEX book_files_bookId_idx ON bookFile(bookId);
+CREATE INDEX book_files_bookId_idx ON bookFileEntity(bookId);
 
-CREATE TABLE bookChapter (
+CREATE TABLE bookChapterEntity (
   id TEXT NOT NULL PRIMARY KEY,
   duration REAL NOT NULL,
   start REAL NOT NULL,
   end REAL NOT NULL,
   title TEXT NOT NULL,
   bookId TEXT NOT NULL,
-  FOREIGN KEY(bookId) REFERENCES book(id) ON DELETE CASCADE
+  FOREIGN KEY(bookId) REFERENCES bookEntity(id) ON DELETE CASCADE
 );
 
-CREATE INDEX book_chapters_bookId_idx ON bookChapter(bookId);
+CREATE INDEX book_chapters_bookId_idx ON bookChapterEntity(bookId);
 
-CREATE TABLE mediaProgress (
+CREATE TABLE mediaProgressEntity (
   bookId TEXT NOT NULL PRIMARY KEY,
   currentTime REAL NOT NULL,
   isFinished INTEGER AS Boolean NOT NULL,
   lastUpdate INTEGER NOT NULL,
-  FOREIGN KEY(bookId) REFERENCES book(id) ON DELETE CASCADE
+  FOREIGN KEY(bookId) REFERENCES bookEntity(id) ON DELETE CASCADE
 );
 
-CREATE INDEX media_progress_bookId_idx ON mediaProgress(bookId);
+CREATE INDEX media_progress_bookId_idx ON mediaProgressEntity(bookId);
 
 upsertBook:
-INSERT OR REPLACE INTO book (id, title, author, duration, libraryId)
+INSERT OR REPLACE INTO bookEntity (id, title, author, duration, libraryId)
 VALUES (?, ?, ?, ?, ?);
 
 upsertBookFiles:
-INSERT OR REPLACE INTO bookFile (id, name, duration, mimeType, bookId)
+INSERT OR REPLACE INTO bookFileEntity (id, name, duration, mimeType, bookId)
 VALUES (?, ?, ?, ?, ?);
 
 upsertBookChapters:
-INSERT OR REPLACE INTO bookChapter (id, duration, start, end, title, bookId)
+INSERT OR REPLACE INTO bookChapterEntity (id, duration, start, end, title, bookId)
 VALUES (?, ?, ?, ?, ?, ?);
 
 upsertMediaProgress:
-INSERT OR REPLACE INTO mediaProgress (bookId, currentTime, isFinished, lastUpdate)
+INSERT OR REPLACE INTO mediaProgressEntity (bookId, currentTime, isFinished, lastUpdate)
 VALUES (?, ?, ?, ?);
 
 
 fetchCachedBooks:
-SELECT * FROM book
+SELECT * FROM bookEntity
 WHERE (libraryId IS NULL OR libraryId = ?)
 ORDER BY title
 LIMIT ? OFFSET (? * ?);
 
 searchCachedBooks:
-SELECT * FROM book
+SELECT * FROM bookEntity
 WHERE (libraryId IS NULL OR libraryId = ?)
   AND (title LIKE '%' || ? || '%' OR author LIKE '%' || ? || '%')
 ORDER BY title;
 
 fetchRecentlyListenedCachedBooks:
-SELECT book.*
-FROM book
-INNER JOIN mediaProgress ON book.id = mediaProgress.bookId
+SELECT bookEntity.*
+FROM bookEntity
+INNER JOIN mediaProgressEntity ON bookEntity.id = mediaProgressEntity.bookId
 WHERE (libraryId IS NULL OR libraryId = ?)
-ORDER BY mediaProgress.lastUpdate DESC
+ORDER BY mediaProgressEntity.lastUpdate DESC
 LIMIT 10;
 
-fetchCachedBook:
-SELECT book.*
-FROM book
-WHERE id = ?;
-
 fetchBook:
-SELECT book.*
-FROM book
+SELECT bookEntity.*
+FROM bookEntity
 WHERE id = ?;
 
 fetchBookIds:
 SELECT id
-FROM book
+FROM bookEntity
 WHERE (libraryId IS NULL OR libraryId = ?);
 
 fetchMediaProgress:
-SELECT * FROM mediaProgress
+SELECT * FROM mediaProgressEntity
+WHERE bookId = ?;
+
+fetchBookFilesForBookId:
+SELECT bookFileEntity.*
+FROM bookFileEntity
+WHERE bookId = ?;
+
+fetchBookChaptersForBookId:
+SELECT bookChapterEntity.*
+FROM bookChapterEntity
 WHERE bookId = ?;
 
 
 updateMediaProgress:
-UPDATE mediaProgress
+UPDATE mediaProgressEntity
 SET currentTime = ?, isFinished = ?, lastUpdate = ?
 WHERE bookId = ?;
 
 deleteBook:
-DELETE FROM book
+DELETE FROM bookEntity
 WHERE id = ?;
