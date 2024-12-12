@@ -129,6 +129,11 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
             packageName = "org.overengineer.talelistener"
             packageVersion = "1.0.0"
+
+            // Application/Title bar theme color in MacOS
+            jvmArgs(
+                "-Dapple.awt.application.appearance=system"
+            )
         }
     }
 }

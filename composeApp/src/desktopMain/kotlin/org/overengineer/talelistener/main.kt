@@ -21,7 +21,7 @@ fun main() = application {
         title = "TaleListener",
     ) {
         App(
-            darkTheme = isSystemInDarkTheme(), // Todo: test on MacOS (with auto switching) and Windows
+            darkTheme = isSystemInDarkTheme(), // Todo: test on Windows
             dynamicColor = false
         )
     }

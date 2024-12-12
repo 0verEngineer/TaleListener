@@ -2,6 +2,7 @@ package org.overengineer.talelistener.db
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import io.github.aakira.napier.Napier
 import org.overengineer.Database
 import java.io.File
 import java.util.Properties
@@ -22,6 +23,8 @@ actual class DriverFactory {
         val appName = "TaleListener"
 
         val isDev = System.getenv("IS_DEV")?.toBoolean() ?: false
+
+        Napier.d("IS_DEV: $isDev")
 
         return if (isDev) {
             val projectDir = System.getProperty("user.dir") ?: "."

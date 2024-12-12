@@ -1,10 +1,11 @@
 import SwiftUI
+import ComposeApp
 
 @main
 struct iOSApp: App {
-    NapierProxyKt.debugBuild()
 
     init() {
+        NapierProxyKt.debugBuild()
         KoinInitializerKt.doInitKoin()
     }
 

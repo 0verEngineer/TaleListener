@@ -9,10 +9,6 @@ import platform.UIKit.UIUserInterfaceStyle
 
 fun MainViewController() = ComposeUIViewController {
 
-    startKoin {
-        modules(commonModule(), platformModule())
-    }
-
     val isDarkTheme =
         UIScreen.mainScreen.traitCollection.userInterfaceStyle ==
                 UIUserInterfaceStyle.UIUserInterfaceStyleDark
