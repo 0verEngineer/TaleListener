@@ -46,19 +46,19 @@ CREATE INDEX media_progress_bookId_idx ON mediaProgressEntity(bookId);
 
 upsertBook:
 INSERT OR REPLACE INTO bookEntity (id, title, author, duration, libraryId)
-VALUES (?, ?, ?, ?, ?);
+VALUES ?;
 
-upsertBookFiles:
+upsertBookFile:
 INSERT OR REPLACE INTO bookFileEntity (id, name, duration, mimeType, bookId)
-VALUES (?, ?, ?, ?, ?);
+VALUES ?;
 
-upsertBookChapters:
+upsertBookChapter:
 INSERT OR REPLACE INTO bookChapterEntity (id, duration, start, end, title, bookId)
-VALUES (?, ?, ?, ?, ?, ?);
+VALUES ?;
 
 upsertMediaProgress:
 INSERT OR REPLACE INTO mediaProgressEntity (bookId, currentTime, isFinished, lastUpdate)
-VALUES (?, ?, ?, ?);
+VALUES ?;
 
 
 fetchCachedBooks:
