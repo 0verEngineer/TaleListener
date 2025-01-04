@@ -5,7 +5,6 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 
-
 class AudiobookshelfMediaClient(private val httpClient: HttpClient) {
 
     suspend fun getItemCover(itemId: String): HttpResponse {

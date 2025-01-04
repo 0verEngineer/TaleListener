@@ -17,8 +17,11 @@ package org.overengineer.talelistener.channel.audiobookshelf.common.api
 import io.github.aakira.napier.Napier
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
-import io.ktor.utils.io.ByteReadChannel
+import io.ktor.http.contentLength
 import io.ktor.utils.io.errors.IOException
+import io.ktor.utils.io.readFully
+import okio.Buffer
+import okio.BufferedSource
 import org.overengineer.talelistener.channel.audiobookshelf.common.client.AudiobookshelfMediaClient
 import org.overengineer.talelistener.channel.common.ApiError
 import org.overengineer.talelistener.channel.common.ApiResult
@@ -26,26 +29,30 @@ import org.overengineer.talelistener.channel.common.BinaryApiClient
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 import org.overengineer.talelistener.platform.getHttpClientEngineFactory
 
+// todo: rename? - this is not a repository
 class AudioBookshelfMediaRepository (
-    private val preferences: TaleListenerSharedPreferences,
-    private val requestHeadersProvider: RequestHeadersProvider,
+    private val preferences: TaleListenerSharedPreferences
 ) {
 
     private var configCache: ApiClientConfig? = null
     private var clientCache: AudiobookshelfMediaClient? = null
 
-    // todo does this work?
-    suspend fun fetchBookCover(itemId: String): ApiResult<ByteReadChannel> =
+    suspend fun fetchBookCover(itemId: String): ApiResult<BufferedSource> =
         safeCall { getClientInstance().getItemCover(itemId) }
 
-    private suspend fun safeCall(apiCall: suspend () -> HttpResponse): ApiResult<ByteReadChannel> {
+    private suspend fun safeCall(apiCall: suspend () -> HttpResponse): ApiResult<BufferedSource> {
         return try {
             val response = apiCall.invoke()
 
+            // todo now: is the async stuff here done correctly?
             when (response.status.value) {
                 200 -> {
+                    val byteArray = ByteArray(response.contentLength()!!.toInt())
                     val body = response.bodyAsChannel()
-                    ApiResult.Success(body)
+                    body.readFully(byteArray)
+                    val buffer = Buffer()
+                    buffer.write(byteArray)
+                    ApiResult.Success(buffer)
                 }
                 400 -> ApiResult.Error(ApiError.InternalError)
                 401 -> ApiResult.Error(ApiError.Unauthorized)
@@ -72,7 +79,7 @@ class AudioBookshelfMediaRepository (
         val cache = ApiClientConfig(
             host = host,
             token = token,
-            customHeaders = requestHeadersProvider.fetchRequestHeaders(),
+            customHeaders = preferences.getCustomHeaders(),
         )
 
         val currentClientCache = clientCache
@@ -99,7 +106,7 @@ class AudioBookshelfMediaRepository (
 
         val apiClient = BinaryApiClient(
             serverUrlString = host,
-            requestHeaders = requestHeadersProvider.fetchRequestHeaders(),
+            requestHeaders = preferences.getCustomHeaders(),
             token = token,
             engineFactory = getHttpClientEngineFactory()
         )

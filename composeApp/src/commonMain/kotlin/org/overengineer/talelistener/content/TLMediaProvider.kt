@@ -1,21 +1,24 @@
-
 /*
  * This file is part of TaleListener, licensed under the GPLv3 license.
  * Original code by GrakovNe from the lissen project (https://github.com/GrakovNe/lissen-android), licensed under the MIT License.
  * Original file location: org.grakovne.lissen.domain
+ * Original file name: LissenMediaProvider
  * Modifications:
  * - Updated package statement and adjusted imports.
  * - Removed javax singleton stuff
  * - Changes for kotlin multiplatform
  * - Moved channels from constructor into class and added AudiobookshelfChannelProvider to constructor
  * - Migrated logging to Napier
+ * - Added provideFilePath for local paths
+ * - Refactored the methods to use return if (isOffline) instead of the old forceCache logic
  */
 
 package org.overengineer.talelistener.content
 
 import io.github.aakira.napier.Napier
 import io.ktor.http.Url
-import io.ktor.utils.io.ByteReadChannel
+import okio.BufferedSource
+import okio.Path
 import org.overengineer.talelistener.channel.audiobookshelf.AudiobookshelfChannelProvider
 import org.overengineer.talelistener.channel.common.ApiError
 import org.overengineer.talelistener.channel.common.ApiResult
@@ -35,36 +38,23 @@ import org.overengineer.talelistener.domain.RecentBook
 import org.overengineer.talelistener.domain.UserAccount
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 
-class LissenMediaProvider (
-    private val sharedPreferences: TaleListenerSharedPreferences,
+class TLMediaProvider (
+    private val preferences: TaleListenerSharedPreferences,
     private val audiobookshelfChannelProvider: AudiobookshelfChannelProvider,
     private val localCacheRepository: LocalCacheRepository,
 ) {
 
     private val channels: Map<ChannelCode, ChannelProvider> = mapOf(pair = Pair(ChannelCode.AUDIOBOOKSHELF, audiobookshelfChannelProvider))
 
-    fun provideFileUri(
+    fun provideFilePath(
         libraryItemId: String,
         chapterId: String,
-    ): ApiResult<Url> {
-        Napier.d("Fetching File $libraryItemId and $chapterId URI")
+    ): Path? = localCacheRepository.provideFilePath(libraryItemId, chapterId)
 
-        return when (sharedPreferences.isForceCache()) {
-            true ->
-                localCacheRepository
-                    .provideFileUri(libraryItemId, chapterId)
-                    ?.let { ApiResult.Success(it) }
-                    ?: ApiResult.Error(ApiError.InternalError)
-
-            false ->
-                localCacheRepository
-                    .provideFileUri(libraryItemId, chapterId)
-                    ?.let { ApiResult.Success(it) }
-                    ?: providePreferredChannel()
-                        .provideFileUri(libraryItemId, chapterId)
-                        .let { ApiResult.Success(it) }
-        }
-    }
+    fun provideFileUrl(
+        libraryItemId: String,
+        chapterId: String,
+    ): Url = providePreferredChannel().provideFileUrl(libraryItemId, chapterId)
 
     suspend fun syncProgress(
         sessionId: String,
@@ -73,22 +63,25 @@ class LissenMediaProvider (
     ): ApiResult<Unit> {
         Napier.d("Syncing Progress for $bookId, $progress")
 
-        return when (sharedPreferences.isForceCache()) {
-            true -> localCacheRepository.syncProgress(bookId, progress)
-            false -> providePreferredChannel()
+        return if (preferences.isOffline()) {
+            localCacheRepository.syncProgress(bookId, progress)
+        } else {
+            providePreferredChannel()
                 .syncProgress(sessionId, progress)
                 .also { localCacheRepository.syncProgress(bookId, progress) }
         }
     }
 
     suspend fun fetchBookCover(
-        bookId: String,
-    ): ApiResult<ByteReadChannel> {
-        Napier.d("Fetching Cover stream for $bookId")
+        bookId: String
+    ): ApiResult<BufferedSource> {
+        val isOffline = preferences.isOffline()
+        Napier.d("Fetching Cover stream for $bookId, isOffline: $isOffline")
 
-        return when (sharedPreferences.isForceCache()) {
-            true -> localCacheRepository.fetchBookCover(bookId)
-            false -> providePreferredChannel().fetchBookCover(bookId)
+        return if (isOffline) {
+            localCacheRepository.fetchBookCover(bookId)
+        } else {
+            providePreferredChannel().fetchBookCover(bookId)
         }
     }
 
@@ -97,16 +90,17 @@ class LissenMediaProvider (
         query: String,
         limit: Int,
     ): ApiResult<List<Book>> {
-        Napier.d("Searching books with query $query of library: $libraryId")
+        val isOffline = preferences.isOffline()
+        Napier.d("Searching books with query $query of library: $libraryId isOffline: $isOffline")
 
-        return when (sharedPreferences.isForceCache()) {
-            true -> localCacheRepository.searchBooks(query)
-            false -> providePreferredChannel()
-                .searchBooks(
-                    libraryId = libraryId,
-                    query = query,
-                    limit = limit,
-                )
+        return if (isOffline) {
+            localCacheRepository.searchBooks(query)
+        } else {
+            providePreferredChannel().searchBooks(
+                libraryId = libraryId,
+                query = query,
+                limit = limit
+            )
         }
     }
 
@@ -115,24 +109,26 @@ class LissenMediaProvider (
         pageSize: Int,
         pageNumber: Int,
     ): ApiResult<PagedItems<Book>> {
-        Napier.d("Fetching page $pageNumber of library: $libraryId")
+        val isOffline = preferences.isOffline()
+        Napier.d("Fetching page $pageNumber of library: $libraryId isOffline: $isOffline")
 
-        return when (sharedPreferences.isForceCache()) {
-            true -> localCacheRepository.fetchBooks(pageSize, pageNumber)
-            false -> {
-                providePreferredChannel()
-                    .fetchBooks(libraryId, pageSize, pageNumber)
-                    .map { flagCached(it) }
-            }
+        return if (isOffline) {
+            localCacheRepository.fetchBooks(pageSize, pageNumber)
+        } else {
+            providePreferredChannel()
+                .fetchBooks(libraryId, pageSize, pageNumber)
+                .map { flagCached(it) }
         }
     }
 
     suspend fun fetchLibraries(): ApiResult<List<Library>> {
-        Napier.d("Fetching List of libraries")
+        val isOffline = preferences.isOffline()
+        Napier.d("Fetching List of libraries, isOffline: $isOffline")
 
-        return when (sharedPreferences.isForceCache()) {
-            true -> localCacheRepository.fetchLibraries()
-            false -> providePreferredChannel()
+        return if (isOffline) {
+            localCacheRepository.fetchLibraries()
+        } else {
+            providePreferredChannel()
                 .fetchLibraries()
                 .also {
                     it.foldAsync(
@@ -149,11 +145,13 @@ class LissenMediaProvider (
         supportedMimeTypes: List<String>,
         deviceId: String,
     ): ApiResult<PlaybackSession> {
-        Napier.d("Starting Playback for $bookId. $supportedMimeTypes are supported")
+        val isOffline = preferences.isOffline()
+        Napier.d("Starting Playback for $bookId, $supportedMimeTypes are supported, isOffline: $isOffline")
 
-        return when (sharedPreferences.isForceCache()) {
-            true -> localCacheRepository.startPlayback(bookId)
-            false -> providePreferredChannel().startPlayback(
+        return if (isOffline) {
+            localCacheRepository.startPlayback(bookId)
+        } else {
+            providePreferredChannel().startPlayback(
                 bookId = bookId,
                 episodeId = chapterId,
                 supportedMimeTypes = supportedMimeTypes,
@@ -165,27 +163,29 @@ class LissenMediaProvider (
     suspend fun fetchRecentListenedBooks(
         libraryId: String,
     ): ApiResult<List<RecentBook>> {
-        Napier.d("Fetching Recent books of library $libraryId")
+        val isOffline = preferences.isOffline()
+        Napier.d("Fetching Recent books of library $libraryId, isOffline: $isOffline")
 
-        return when (sharedPreferences.isForceCache()) {
-            true -> localCacheRepository.fetchRecentListenedBooks()
-            false -> providePreferredChannel().fetchRecentListenedBooks(libraryId)
+        return if (isOffline) {
+            localCacheRepository.fetchRecentListenedBooks()
+        } else {
+            providePreferredChannel().fetchRecentListenedBooks(libraryId)
         }
     }
 
     suspend fun fetchBook(
         bookId: String,
     ): ApiResult<DetailedItem> {
-        Napier.d("Fetching Detailed book info for $bookId")
+        val isOffline = preferences.isOffline()
+        Napier.d("Fetching Detailed book info for $bookId, isOffline: $isOffline")
 
-        return when (sharedPreferences.isForceCache()) {
-            true ->
-                localCacheRepository
-                    .fetchBook(bookId)
-                    ?.let { ApiResult.Success(it) }
-                    ?: ApiResult.Error(ApiError.InternalError)
-
-            false -> providePreferredChannel()
+        return if (isOffline) {
+            localCacheRepository
+                .fetchBook(bookId)
+                ?.let { ApiResult.Success(it) }
+                ?: ApiResult.Error(ApiError.InternalError)
+        } else {
+            providePreferredChannel()
                 .fetchBook(bookId)
                 .map { syncFromLocalProgress(it) }
         }
@@ -200,26 +200,24 @@ class LissenMediaProvider (
         return provideAuthService().authorize(host, username, password)
     }
 
-    // todo impl
     private suspend fun syncFromLocalProgress(detailedItem: DetailedItem): DetailedItem {
-        throw NotImplementedError("syncFromLocalProgress not implemented")
-        /*val cachedBook = localCacheRepository.fetchBook(detailedItem.id) ?: return detailedItem
+        val cachedBook = localCacheRepository.fetchBook(detailedItem.id) ?: return detailedItem
 
         val cachedProgress = cachedBook.progress ?: return detailedItem
         val channelProgress = detailedItem.progress
 
         val updatedProgress = listOfNotNull(cachedProgress, channelProgress)
             .maxByOrNull { it.lastUpdate }
-            ?: return detailedItem*/
+            ?: return detailedItem
 
-        /*Napier.d("""
+        Napier.d("""
             Merging local playback progress into channel-fetched:
                             Channel Progress: $channelProgress
                             Local Progress: $cachedProgress
                             Final Progress: $updatedProgress
         """.trimIndent())
 
-        return detailedItem.copy(progress = updatedProgress)*/
+        return detailedItem.copy(progress = updatedProgress)
     }
 
     suspend fun fetchConnectionInfo() = providePreferredChannel().fetchConnectionInfo()
@@ -243,11 +241,11 @@ class LissenMediaProvider (
         return page.copy(items = items)
     }
 
-    fun provideAuthService(): ChannelAuthService = channels[sharedPreferences.getChannel()]
+    fun provideAuthService(): ChannelAuthService = channels[preferences.getChannel()]
         ?.provideChannelAuth()
         ?: throw IllegalStateException("Selected auth service has been requested but not selected")
 
-    fun providePreferredChannel(): MediaChannel = channels[sharedPreferences.getChannel()]
+    fun providePreferredChannel(): MediaChannel = channels[preferences.getChannel()]
         ?.provideMediaChannel()
         ?: throw IllegalStateException("Selected auth service has been requested but not selected")
 

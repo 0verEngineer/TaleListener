@@ -1,6 +1,4 @@
-import org.gradle.internal.classpath.Instrumented.systemProperty
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -62,12 +60,14 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.multiplatform.settings.no.arg)
-            implementation(libs.kotlinx.datetime.v061)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.napier)
             implementation(libs.voyager.navigator)
             implementation(libs.sonner)
             implementation(libs.material.icons.extended)
+            implementation(libs.okio)
+            implementation(libs.multiplatform.paths)
         }
         androidMain.dependencies {
             implementation(compose.preview)

@@ -13,7 +13,6 @@
 package org.overengineer.talelistener.channel.audiobookshelf.common.api
 
 import org.overengineer.talelistener.channel.audiobookshelf.common.client.AudiobookshelfApiClient
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.LoginResponseConverter
 import org.overengineer.talelistener.channel.audiobookshelf.common.model.user.CredentialsLoginRequest
 import org.overengineer.talelistener.channel.audiobookshelf.common.model.user.LoggedUserResponse
 import org.overengineer.talelistener.channel.common.ApiClient
@@ -21,12 +20,13 @@ import org.overengineer.talelistener.channel.common.ApiError
 import org.overengineer.talelistener.channel.common.ApiResult
 import org.overengineer.talelistener.channel.common.AuthType
 import org.overengineer.talelistener.channel.common.ChannelAuthService
+import org.overengineer.talelistener.content.cache.converter.loggedUserResponseToUserAccount
 import org.overengineer.talelistener.domain.UserAccount
+import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 import org.overengineer.talelistener.platform.getHttpClientEngineFactory
 
 class AudiobookshelfAuthService (
-    private val loginResponseConverter: LoginResponseConverter,
-    private val requestHeadersProvider: RequestHeadersProvider,
+    private val preferences: TaleListenerSharedPreferences,
 ) : ChannelAuthService {
 
     override suspend fun authorize(
@@ -43,7 +43,7 @@ class AudiobookshelfAuthService (
         try {
             val apiClient = ApiClient(
                 serverUrlString = host,
-                requestHeaders = requestHeadersProvider.fetchRequestHeaders(),
+                requestHeaders = preferences.getCustomHeaders(),
                 engineFactory = getHttpClientEngineFactory()
             )
 
@@ -58,9 +58,7 @@ class AudiobookshelfAuthService (
         return response
             .fold(
                 onSuccess = {
-                    loginResponseConverter
-                        .apply(it)
-                        .let { ApiResult.Success(it) }
+                    ApiResult.Success(loggedUserResponseToUserAccount(it))
                 },
                 onFailure = { ApiResult.Error(it.code) },
             )

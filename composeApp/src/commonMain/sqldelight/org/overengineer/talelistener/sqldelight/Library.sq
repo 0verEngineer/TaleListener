@@ -10,7 +10,7 @@ CREATE TABLE libraryEntity (
 
 upsertLibraries:
 INSERT OR REPLACE INTO libraryEntity (id, title, type)
-VALUES (?, ?, ?);
+VALUES ?;
 
 fetchLibrary:
 SELECT * FROM libraryEntity

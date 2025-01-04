@@ -14,10 +14,6 @@ package org.overengineer.talelistener.channel.audiobookshelf.common
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfDataRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfMediaRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfSyncService
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.ConnectionInfoResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.LibraryResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.PlaybackSessionResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.RecentListeningResponseConverter
 import org.overengineer.talelistener.channel.common.ApiError
 import org.overengineer.talelistener.channel.common.ApiResult
 import org.overengineer.talelistener.channel.common.LibraryType
@@ -27,24 +23,16 @@ import org.overengineer.talelistener.domain.PagedItems
 import org.overengineer.talelistener.domain.PlaybackSession
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 
-class UnknownAudiobookshelfChannel constructor(
+class UnknownAudiobookshelfChannel (
     dataRepository: AudioBookshelfDataRepository,
     mediaRepository: AudioBookshelfMediaRepository,
-    recentListeningResponseConverter: RecentListeningResponseConverter,
     preferences: TaleListenerSharedPreferences,
     syncService: AudioBookshelfSyncService,
-    sessionResponseConverter: PlaybackSessionResponseConverter,
-    libraryResponseConverter: LibraryResponseConverter,
-    connectionInfoResponseConverter: ConnectionInfoResponseConverter,
 ) : AudiobookshelfChannel(
     dataRepository = dataRepository,
     mediaRepository = mediaRepository,
-    recentBookResponseConverter = recentListeningResponseConverter,
-    sessionResponseConverter = sessionResponseConverter,
     preferences = preferences,
     syncService = syncService,
-    libraryResponseConverter = libraryResponseConverter,
-    connectionInfoResponseConverter = connectionInfoResponseConverter,
 ) {
 
     override fun getLibraryType(): LibraryType = LibraryType.UNKNOWN

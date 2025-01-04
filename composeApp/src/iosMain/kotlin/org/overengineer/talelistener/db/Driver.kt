@@ -6,6 +6,8 @@ import co.touchlab.sqliter.DatabaseConfiguration
 import org.overengineer.Database
 
 actual class DriverFactory {
+    private lateinit var driver: SqlDriver
+
     actual fun createDriver(): SqlDriver {
         return NativeSqliteDriver(
             schema = Database.Schema,
@@ -17,4 +19,6 @@ actual class DriverFactory {
             }
         )
     }
+
+    actual fun getDriver(): SqlDriver = driver
 }

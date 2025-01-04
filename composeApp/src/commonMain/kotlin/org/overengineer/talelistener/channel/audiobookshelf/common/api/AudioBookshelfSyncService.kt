@@ -14,7 +14,7 @@ import org.overengineer.talelistener.channel.audiobookshelf.common.model.playbac
 import org.overengineer.talelistener.channel.common.ApiResult
 import org.overengineer.talelistener.domain.PlaybackProgress
 
-class AudioBookshelfSyncService constructor(
+class AudioBookshelfSyncService (
     private val dataRepository: AudioBookshelfDataRepository,
 ) {
 

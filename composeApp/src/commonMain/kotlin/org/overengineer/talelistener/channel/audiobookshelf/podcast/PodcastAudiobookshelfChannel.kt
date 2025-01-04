@@ -17,44 +17,31 @@ import org.overengineer.talelistener.channel.audiobookshelf.common.Audiobookshel
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfDataRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfMediaRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfSyncService
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.ConnectionInfoResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.LibraryResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.PlaybackSessionResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.RecentListeningResponseConverter
 import org.overengineer.talelistener.channel.audiobookshelf.common.model.playback.DeviceInfo
 import org.overengineer.talelistener.channel.audiobookshelf.common.model.playback.PlaybackStartRequest
-import org.overengineer.talelistener.channel.audiobookshelf.podcast.converter.PodcastPageResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.podcast.converter.PodcastResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.podcast.converter.PodcastSearchItemsConverter
 import org.overengineer.talelistener.channel.common.ApiResult
 import org.overengineer.talelistener.channel.common.LibraryType
+import org.overengineer.talelistener.content.cache.converter.playbackSessionResponseToPlaybackSession
+import org.overengineer.talelistener.content.cache.converter.podcastItemListToBookList
+import org.overengineer.talelistener.content.cache.converter.podcastItemsResponseToBookPagedItems
+import org.overengineer.talelistener.content.cache.converter.podcastResponseAndMediaProgressResponseToDetailedItem
 import org.overengineer.talelistener.domain.Book
 import org.overengineer.talelistener.domain.DetailedItem
 import org.overengineer.talelistener.domain.PagedItems
 import org.overengineer.talelistener.domain.PlaybackSession
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 
+
 class PodcastAudiobookshelfChannel (
     dataRepository: AudioBookshelfDataRepository,
     mediaRepository: AudioBookshelfMediaRepository,
-    recentListeningResponseConverter: RecentListeningResponseConverter,
     preferences: TaleListenerSharedPreferences,
     syncService: AudioBookshelfSyncService,
-    sessionResponseConverter: PlaybackSessionResponseConverter,
-    libraryResponseConverter: LibraryResponseConverter,
-    connectionInfoResponseConverter: ConnectionInfoResponseConverter,
-    private val podcastPageResponseConverter: PodcastPageResponseConverter,
-    private val podcastResponseConverter: PodcastResponseConverter,
-    private val podcastSearchItemsConverter: PodcastSearchItemsConverter,
 ) : AudiobookshelfChannel(
     dataRepository = dataRepository,
     mediaRepository = mediaRepository,
-    recentBookResponseConverter = recentListeningResponseConverter,
-    sessionResponseConverter = sessionResponseConverter,
     preferences = preferences,
     syncService = syncService,
-    libraryResponseConverter = libraryResponseConverter,
-    connectionInfoResponseConverter = connectionInfoResponseConverter,
 ) {
 
     override fun getLibraryType() = LibraryType.PODCAST
@@ -69,7 +56,7 @@ class PodcastAudiobookshelfChannel (
             pageSize = pageSize,
             pageNumber = pageNumber,
         )
-        .map { podcastPageResponseConverter.apply(it) }
+        .map { podcastItemsResponseToBookPagedItems(it) }
 
     override suspend fun searchBooks(
         libraryId: String,
@@ -81,7 +68,7 @@ class PodcastAudiobookshelfChannel (
                 .searchPodcasts(libraryId, query, limit)
                 .map { it.podcast }
                 .map { it.map { response -> response.libraryItem } }
-                .map { podcastSearchItemsConverter.apply(it) }
+                .map { podcastItemListToBookList(it) }
         }
 
         byTitle.await()
@@ -111,7 +98,7 @@ class PodcastAudiobookshelfChannel (
                 episodeId = episodeId,
                 request = request,
             )
-            .map { sessionResponseConverter.apply(it) }
+            .map { playbackSessionResponseToPlaybackSession(it) }
     }
 
     override suspend fun fetchBook(bookId: String): ApiResult<DetailedItem> = coroutineScope {
@@ -134,6 +121,6 @@ class PodcastAudiobookshelfChannel (
 
         async { dataRepository.fetchPodcastItem(bookId) }
             .await()
-            .map { podcastResponseConverter.apply(it, mediaProgress.await()) }
+            .map { podcastResponseAndMediaProgressResponseToDetailedItem(it, mediaProgress.await()) }
     }
 }

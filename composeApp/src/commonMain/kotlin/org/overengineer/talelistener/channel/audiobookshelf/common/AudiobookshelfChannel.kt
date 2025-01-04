@@ -13,19 +13,18 @@
 package org.overengineer.talelistener.channel.audiobookshelf.common
 
 import io.ktor.http.URLBuilder
-import io.ktor.utils.io.ByteReadChannel
 import io.ktor.http.Url
 import io.ktor.http.path
+import okio.BufferedSource
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfDataRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfMediaRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfSyncService
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.ConnectionInfoResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.LibraryResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.PlaybackSessionResponseConverter
-import org.overengineer.talelistener.channel.audiobookshelf.common.converter.RecentListeningResponseConverter
 import org.overengineer.talelistener.channel.common.ApiResult
 import org.overengineer.talelistener.channel.common.ConnectionInfo
 import org.overengineer.talelistener.channel.common.MediaChannel
+import org.overengineer.talelistener.content.cache.converter.connectionInfoResponseToConnectionInfo
+import org.overengineer.talelistener.content.cache.converter.libraryResponseToLibraryList
+import org.overengineer.talelistener.content.cache.converter.personalizedFeedResponseAndProgressToRecentBookList
 import org.overengineer.talelistener.domain.Library
 import org.overengineer.talelistener.domain.PlaybackProgress
 import org.overengineer.talelistener.domain.RecentBook
@@ -33,16 +32,12 @@ import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedP
 
 abstract class AudiobookshelfChannel(
     protected val dataRepository: AudioBookshelfDataRepository,
-    protected val sessionResponseConverter: PlaybackSessionResponseConverter,
     protected val preferences: TaleListenerSharedPreferences,
     private val syncService: AudioBookshelfSyncService,
-    private val libraryResponseConverter: LibraryResponseConverter,
     private val mediaRepository: AudioBookshelfMediaRepository,
-    private val recentBookResponseConverter: RecentListeningResponseConverter,
-    private val connectionInfoResponseConverter: ConnectionInfoResponseConverter,
 ) : MediaChannel {
 
-    override fun provideFileUri(
+    override fun provideFileUrl(
         libraryItemId: String,
         fileId: String
     ): Url {
@@ -63,11 +58,11 @@ abstract class AudiobookshelfChannel(
 
     override suspend fun fetchBookCover(
         bookId: String,
-    ): ApiResult<ByteReadChannel> = mediaRepository.fetchBookCover(bookId)
+    ): ApiResult<BufferedSource> = mediaRepository.fetchBookCover(bookId)
 
     override suspend fun fetchLibraries(): ApiResult<List<Library>> = dataRepository
         .fetchLibraries()
-        .map { libraryResponseConverter.apply(it) }
+        .map { libraryResponseToLibraryList(it) }
 
     override suspend fun fetchRecentListenedBooks(libraryId: String): ApiResult<List<RecentBook>> {
         val progress: Map<String, Double> = dataRepository
@@ -85,12 +80,12 @@ abstract class AudiobookshelfChannel(
 
         return dataRepository
             .fetchPersonalizedFeed(libraryId)
-            .map { recentBookResponseConverter.apply(it, progress) }
+            .map { personalizedFeedResponseAndProgressToRecentBookList(it, progress) }
     }
 
     override suspend fun fetchConnectionInfo(): ApiResult<ConnectionInfo> = dataRepository
         .fetchConnectionInfo()
-        .map { connectionInfoResponseConverter.apply(it) }
+        .map { connectionInfoResponseToConnectionInfo(it) }
 
     // TODO: Add build config support instead of hardcoding
     protected fun getClientName() = "TaleListener App 0.0.1"

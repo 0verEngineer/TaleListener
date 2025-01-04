@@ -31,9 +31,9 @@ import org.overengineer.talelistener.channel.common.ApiResult
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 import org.overengineer.talelistener.platform.getHttpClientEngineFactory
 
-class AudioBookshelfDataRepository constructor(
-    private val preferences: TaleListenerSharedPreferences,
-    private val requestHeadersProvider: RequestHeadersProvider,
+// Todo: rename? - this is not a repository
+class AudioBookshelfDataRepository (
+    private val preferences: TaleListenerSharedPreferences
 ) {
 
     private var configCache: ApiClientConfig? = null
@@ -152,7 +152,7 @@ class AudioBookshelfDataRepository constructor(
         val cache = ApiClientConfig(
             host = host,
             token = token,
-            customHeaders = requestHeadersProvider.fetchRequestHeaders(),
+            customHeaders = preferences.getCustomHeaders(),
         )
 
         val currentClientCache = clientCache
@@ -179,7 +179,7 @@ class AudioBookshelfDataRepository constructor(
 
         val apiClient = ApiClient(
             serverUrlString = host,
-            requestHeaders = requestHeadersProvider.fetchRequestHeaders(),
+            requestHeaders = preferences.getCustomHeaders(),
             token = token,
             engineFactory = getHttpClientEngineFactory()
         )

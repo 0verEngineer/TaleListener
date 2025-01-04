@@ -11,6 +11,7 @@ import org.overengineer.talelistener.domain.Library
 import org.overengineer.talelistener.domain.connection.ServerRequestHeader
 import org.overengineer.talelistener.platform.randomUUID
 
+// todo now: remove all not-needed stuff
 class TaleListenerSharedPreferences {
 
     private val settings: Settings = Settings()
@@ -34,7 +35,6 @@ class TaleListenerSharedPreferences {
             KEY_USERNAME,
             KEY_TOKEN,
             KEY_SERVER_VERSION,
-            CACHE_FORCE_ENABLED,
             KEY_PREFERRED_LIBRARY_ID,
             KEY_PREFERRED_LIBRARY_NAME,
             KEY_PREFERRED_PLAYBACK_SPEED
@@ -137,14 +137,15 @@ class TaleListenerSharedPreferences {
     private fun getPreferredLibraryName(): String? =
         settings.getStringOrNull(KEY_PREFERRED_LIBRARY_NAME)
 
-    fun enableForceCache() =
-        settings.putBoolean(CACHE_FORCE_ENABLED, true)
+    fun enableIsOffline() =
+        settings.putBoolean(IS_OFFLINE, true)
 
-    fun disableForceCache() =
-        settings.putBoolean(CACHE_FORCE_ENABLED, false)
+    fun disableIsOffline() =
+        settings.putBoolean(IS_OFFLINE, false)
 
-    fun isForceCache(): Boolean {
-        return settings.getBoolean(CACHE_FORCE_ENABLED, false)
+    // todo now: set this on app start, and if the server connection is dropped
+    fun isOffline(): Boolean {
+        return settings.getBoolean(IS_OFFLINE, false)
     }
 
     fun saveUsername(username: String) =
@@ -180,7 +181,7 @@ class TaleListenerSharedPreferences {
         private const val KEY_HOST = "host"
         private const val KEY_USERNAME = "username"
         private const val KEY_TOKEN = "token"
-        private const val CACHE_FORCE_ENABLED = "cache_force_enabled"
+        private const val IS_OFFLINE = "is_offline"
 
         private const val KEY_SERVER_VERSION = "server_version"
 

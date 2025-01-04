@@ -8,6 +8,7 @@ import org.overengineer.talelistener.sqldelight.LibraryEntity
 
 expect class DriverFactory {
     fun createDriver(): SqlDriver
+    fun getDriver(): SqlDriver
 }
 
 fun createDatabase(driverFactory: DriverFactory): Database {

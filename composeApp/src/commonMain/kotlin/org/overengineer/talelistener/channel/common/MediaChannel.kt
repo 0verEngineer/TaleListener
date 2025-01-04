@@ -11,7 +11,7 @@
 package org.overengineer.talelistener.channel.common
 
 import io.ktor.http.Url
-import io.ktor.utils.io.ByteReadChannel
+import okio.BufferedSource
 import org.overengineer.talelistener.domain.Book
 import org.overengineer.talelistener.domain.DetailedItem
 import org.overengineer.talelistener.domain.Library
@@ -24,7 +24,7 @@ interface MediaChannel {
 
     fun getLibraryType(): LibraryType
 
-    fun provideFileUri(
+    fun provideFileUrl(
         libraryItemId: String,
         fileId: String,
     ): Url
@@ -36,7 +36,7 @@ interface MediaChannel {
 
     suspend fun fetchBookCover(
         bookId: String,
-    ): ApiResult<ByteReadChannel>
+    ): ApiResult<BufferedSource>
 
     suspend fun fetchBooks(
         libraryId: String,

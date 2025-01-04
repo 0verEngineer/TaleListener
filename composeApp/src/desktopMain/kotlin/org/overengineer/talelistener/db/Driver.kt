@@ -8,6 +8,9 @@ import java.io.File
 import java.util.Properties
 
 actual class DriverFactory {
+
+    private lateinit var driver: SqlDriver
+
     actual fun createDriver(): SqlDriver {
         val dbPath = getDatabasePath()
         val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:$dbPath",
@@ -18,6 +21,8 @@ actual class DriverFactory {
         }
         return driver
     }
+
+    actual fun getDriver(): SqlDriver = driver
 
     private fun getDatabasePath(): String {
         val appName = "TaleListener"

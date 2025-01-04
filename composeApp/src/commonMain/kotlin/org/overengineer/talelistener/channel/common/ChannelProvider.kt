@@ -8,6 +8,7 @@
 
 package org.overengineer.talelistener.channel.common
 
+
 interface ChannelProvider {
 
     fun provideMediaChannel(): MediaChannel

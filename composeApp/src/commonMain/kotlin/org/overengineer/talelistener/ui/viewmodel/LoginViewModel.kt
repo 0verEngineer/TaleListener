@@ -20,14 +20,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.overengineer.talelistener.channel.common.ApiError
 import org.overengineer.talelistener.channel.common.LibraryType
-import org.overengineer.talelistener.content.LissenMediaProvider
+import org.overengineer.talelistener.content.TLMediaProvider
 import org.overengineer.talelistener.domain.Library
 import org.overengineer.talelistener.domain.UserAccount
 import org.overengineer.talelistener.domain.error.LoginError
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 
 class LoginViewModel(
-    private val mediaChannel: LissenMediaProvider,
+    private val mediaChannel: TLMediaProvider,
     private val preferences: TaleListenerSharedPreferences
 ) {
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
