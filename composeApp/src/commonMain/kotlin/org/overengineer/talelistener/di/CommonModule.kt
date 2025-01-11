@@ -18,6 +18,7 @@ import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedP
 import org.overengineer.talelistener.ui.viewmodel.CachingViewModel
 import org.overengineer.talelistener.ui.viewmodel.LibraryViewModel
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel
+import org.overengineer.talelistener.ui.viewmodel.PlayerViewModel
 import org.overengineer.talelistener.ui.viewmodel.SettingsViewModel
 import org.overengineer.talelistener.ui.viewmodel.SplashScreenViewModel
 
@@ -79,4 +80,5 @@ fun commonModule() = module {
     single { SplashScreenViewModel(get(), get()) }
     single { LibraryViewModel(get(), get()) }
     single { CachingViewModel(get(), get()) }
+    single { PlayerViewModel(get(), get()) }
 }
