@@ -9,6 +9,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,6 +18,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.koin.compose.koinInject
+import org.overengineer.talelistener.ui.screen.library.LibraryScreen
 import org.overengineer.talelistener.ui.viewmodel.SplashScreenViewModel
 
 class SplashScreen: Screen {
@@ -24,11 +27,22 @@ class SplashScreen: Screen {
         val navigator = LocalNavigator.currentOrThrow
         val viewModel = koinInject<SplashScreenViewModel>()
 
-        LaunchedEffect(Unit) {
-            if (viewModel.hasCredentials()) {
-                navigator.replaceAll(HomeScreen())
+        val tokenValid by viewModel.tokenValid.collectAsState()
+        val isConnected by viewModel.isConnected.collectAsState()
+
+        LaunchedEffect(tokenValid) {
+            if (tokenValid != null) {
+                if (tokenValid == true || !isConnected) {
+                    navigator.replaceAll(LibraryScreen())
+                } else {
+                    navigator.replaceAll(LoginScreen())
+                }
             } else {
-                navigator.replaceAll(LoginScreen())
+                if (!viewModel.hasCredentials()) {
+                    navigator.replaceAll(LoginScreen())
+                } else {
+                    viewModel.isTokenValid()
+                }
             }
         }
 

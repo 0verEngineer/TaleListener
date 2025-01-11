@@ -1,0 +1,3 @@
+language = Objective-C
+headers = Network/Network.h
+compilerOpts = -framework Network

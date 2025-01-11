@@ -12,3 +12,10 @@ This is a Kotlin Multiplatform project targeting Android, iOS, Desktop.
 
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+
+
+## Icons
+### To Attribute todo
+- Fallback Audiobook Icon: https://www.flaticon.com/free-icon/audiobook_8332548?term=audiobook&page=1&position=14&origin=search&related_id=8332548
+- Fallback Podcast Icon: https://www.flaticon.com/free-icon/microphone_2368382?term=podcast&page=1&position=13&origin=search&related_id=2368382

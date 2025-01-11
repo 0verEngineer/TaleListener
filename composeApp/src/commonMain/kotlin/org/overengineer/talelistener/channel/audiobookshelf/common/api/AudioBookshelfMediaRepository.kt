@@ -18,7 +18,6 @@ import io.github.aakira.napier.Napier
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.contentLength
-import io.ktor.utils.io.errors.IOException
 import io.ktor.utils.io.readFully
 import okio.Buffer
 import okio.BufferedSource
@@ -30,6 +29,7 @@ import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedP
 import org.overengineer.talelistener.platform.getHttpClientEngineFactory
 
 // todo: rename? - this is not a repository
+// todo irrelevant with coil
 class AudioBookshelfMediaRepository (
     private val preferences: TaleListenerSharedPreferences
 ) {
@@ -37,6 +37,7 @@ class AudioBookshelfMediaRepository (
     private var configCache: ApiClientConfig? = null
     private var clientCache: AudiobookshelfMediaClient? = null
 
+    // todo irrelevant with coil
     suspend fun fetchBookCover(itemId: String): ApiResult<BufferedSource> =
         safeCall { getClientInstance().getItemCover(itemId) }
 
@@ -44,7 +45,8 @@ class AudioBookshelfMediaRepository (
         return try {
             val response = apiCall.invoke()
 
-            // todo now: is the async stuff here done correctly?
+            // todo: is the async stuff here done correctly?
+            //  -> irrelevant with coil?
             when (response.status.value) {
                 200 -> {
                     val byteArray = ByteArray(response.contentLength()!!.toInt())
@@ -61,7 +63,7 @@ class AudioBookshelfMediaRepository (
                 500 -> ApiResult.Error(ApiError.InternalError)
                 else -> ApiResult.Error(ApiError.InternalError)
             }
-        } catch (e: IOException) {
+        } catch (e: kotlinx.io.IOException) {
             Napier.e("Unable to make network api call $apiCall due to: $e")
             ApiResult.Error(ApiError.NetworkError)
         } catch (e: Exception) {
@@ -69,7 +71,6 @@ class AudioBookshelfMediaRepository (
             ApiResult.Error(ApiError.InternalError)
         }
     }
-
 
     // todo inspect this
     private fun getClientInstance(): AudiobookshelfMediaClient {

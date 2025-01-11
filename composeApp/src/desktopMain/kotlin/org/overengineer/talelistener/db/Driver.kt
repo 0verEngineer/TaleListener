@@ -19,6 +19,7 @@ actual class DriverFactory {
         if (!File(dbPath).exists()) {
             Database.Schema.create(driver)
         }
+        this.driver = driver
         return driver
     }
 

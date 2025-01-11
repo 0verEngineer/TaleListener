@@ -6,6 +6,7 @@
  * Modifications:
  * - Updated package statement and adjusted imports.
  * - Add Serializable annotations
+ * - Fix media missing issue
  */
 
 package org.overengineer.talelistener.channel.audiobookshelf.common.model.user
@@ -23,8 +24,8 @@ data class PersonalizedFeedResponse(
 data class PersonalizedFeedItemResponse(
     val id: String,
     val libraryId: String,
-    val media: PersonalizedFeedItemMediaResponse,
-    val updateAt: Long,
+    val media: PersonalizedFeedItemMediaResponse? = null,
+    val updatedAt: Long,
 )
 
 @Serializable

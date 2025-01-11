@@ -8,16 +8,22 @@ import io.github.aakira.napier.Napier
 import org.koin.core.context.startKoin
 import org.overengineer.talelistener.di.commonModule
 import org.overengineer.talelistener.di.platformModule
+import org.overengineer.talelistener.platform.NetworkQualityService
 
 fun main() = application {
     Napier.base(DebugAntilog())
 
-    startKoin {
+    val koinApp = startKoin {
         modules(commonModule(), platformModule())
-    }
+    }.koin
+
+    val networkService = koinApp.get<NetworkQualityService>()
 
     Window(
-        onCloseRequest = ::exitApplication,
+        onCloseRequest = {
+            networkService.close()
+            exitApplication()
+        },
         title = "TaleListener",
     ) {
         App(

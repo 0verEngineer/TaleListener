@@ -20,7 +20,7 @@ data class ConnectionInfoResponse(
 
 @Serializable
 data class ConnectionInfoUserResponse(
-    val username: String,
+    val username: String
 )
 
 @Serializable

@@ -60,7 +60,9 @@ class AudiobookshelfAuthService (
                 onSuccess = {
                     ApiResult.Success(loggedUserResponseToUserAccount(it))
                 },
-                onFailure = { ApiResult.Error(it.code) },
+                onFailure = {
+                    ApiResult.Error(it.code)
+                },
             )
     }
 

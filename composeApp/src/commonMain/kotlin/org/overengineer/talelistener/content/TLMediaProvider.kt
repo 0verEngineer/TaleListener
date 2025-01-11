@@ -11,6 +11,7 @@
  * - Migrated logging to Napier
  * - Added provideFilePath for local paths
  * - Refactored the methods to use return if (isOffline) instead of the old forceCache logic
+ * - Added isTokenValid method
  */
 
 package org.overengineer.talelistener.content
@@ -63,7 +64,7 @@ class TLMediaProvider (
     ): ApiResult<Unit> {
         Napier.d("Syncing Progress for $bookId, $progress")
 
-        return if (preferences.isOffline()) {
+        return if (!preferences.isConnectedAndOnline()) {
             localCacheRepository.syncProgress(bookId, progress)
         } else {
             providePreferredChannel()
@@ -75,10 +76,10 @@ class TLMediaProvider (
     suspend fun fetchBookCover(
         bookId: String
     ): ApiResult<BufferedSource> {
-        val isOffline = preferences.isOffline()
-        Napier.d("Fetching Cover stream for $bookId, isOffline: $isOffline")
+        val isConnected = preferences.isConnectedAndOnline()
+        Napier.d("Fetching Cover stream for $bookId, isConnected: $isConnected")
 
-        return if (isOffline) {
+        return if (!isConnected) {
             localCacheRepository.fetchBookCover(bookId)
         } else {
             providePreferredChannel().fetchBookCover(bookId)
@@ -90,10 +91,10 @@ class TLMediaProvider (
         query: String,
         limit: Int,
     ): ApiResult<List<Book>> {
-        val isOffline = preferences.isOffline()
-        Napier.d("Searching books with query $query of library: $libraryId isOffline: $isOffline")
+        val isConnected = preferences.isConnectedAndOnline()
+        Napier.d("Searching books with query $query of library: $libraryId isConnected: $isConnected")
 
-        return if (isOffline) {
+        return if (!isConnected) {
             localCacheRepository.searchBooks(query)
         } else {
             providePreferredChannel().searchBooks(
@@ -109,10 +110,10 @@ class TLMediaProvider (
         pageSize: Int,
         pageNumber: Int,
     ): ApiResult<PagedItems<Book>> {
-        val isOffline = preferences.isOffline()
-        Napier.d("Fetching page $pageNumber of library: $libraryId isOffline: $isOffline")
+        val isConnected = preferences.isConnectedAndOnline()
+        Napier.d("Fetching page $pageNumber of library: $libraryId isConnected: $isConnected")
 
-        return if (isOffline) {
+        return if (!isConnected) {
             localCacheRepository.fetchBooks(pageSize, pageNumber)
         } else {
             providePreferredChannel()
@@ -122,10 +123,10 @@ class TLMediaProvider (
     }
 
     suspend fun fetchLibraries(): ApiResult<List<Library>> {
-        val isOffline = preferences.isOffline()
-        Napier.d("Fetching List of libraries, isOffline: $isOffline")
+        val isConnected = preferences.isConnectedAndOnline()
+        Napier.d("Fetching List of libraries, isConnected: $isConnected")
 
-        return if (isOffline) {
+        return if (!isConnected) {
             localCacheRepository.fetchLibraries()
         } else {
             providePreferredChannel()
@@ -145,10 +146,10 @@ class TLMediaProvider (
         supportedMimeTypes: List<String>,
         deviceId: String,
     ): ApiResult<PlaybackSession> {
-        val isOffline = preferences.isOffline()
-        Napier.d("Starting Playback for $bookId, $supportedMimeTypes are supported, isOffline: $isOffline")
+        val isConnected = preferences.isConnectedAndOnline()
+        Napier.d("Starting Playback for $bookId, $supportedMimeTypes are supported, isConnected: $isConnected")
 
-        return if (isOffline) {
+        return if (!isConnected) {
             localCacheRepository.startPlayback(bookId)
         } else {
             providePreferredChannel().startPlayback(
@@ -163,10 +164,10 @@ class TLMediaProvider (
     suspend fun fetchRecentListenedBooks(
         libraryId: String,
     ): ApiResult<List<RecentBook>> {
-        val isOffline = preferences.isOffline()
-        Napier.d("Fetching Recent books of library $libraryId, isOffline: $isOffline")
+        val isConnected = preferences.isConnectedAndOnline()
+        Napier.d("Fetching Recent books of library $libraryId, isConnected: $isConnected")
 
-        return if (isOffline) {
+        return if (!isConnected) {
             localCacheRepository.fetchRecentListenedBooks()
         } else {
             providePreferredChannel().fetchRecentListenedBooks(libraryId)
@@ -176,10 +177,10 @@ class TLMediaProvider (
     suspend fun fetchBook(
         bookId: String,
     ): ApiResult<DetailedItem> {
-        val isOffline = preferences.isOffline()
-        Napier.d("Fetching Detailed book info for $bookId, isOffline: $isOffline")
+        val isConnected = preferences.isConnectedAndOnline()
+        Napier.d("Fetching Detailed book info for $bookId, isConnected: $isConnected")
 
-        return if (isOffline) {
+        return if (!isConnected) {
             localCacheRepository
                 .fetchBook(bookId)
                 ?.let { ApiResult.Success(it) }
@@ -221,6 +222,25 @@ class TLMediaProvider (
     }
 
     suspend fun fetchConnectionInfo() = providePreferredChannel().fetchConnectionInfo()
+
+    suspend fun checkTokenValidAndSetIsServerConnected(): Boolean {
+        val response = providePreferredChannel().fetchConnectionInfo()
+        return response.fold(
+            onSuccess = {
+                Napier.d("checkTokenValidAndSetIsServerConnected, isServerConnected: true")
+                preferences.setIsServerConnected(true)
+                return@fold true
+            },
+            onFailure = {
+                if (it.code == ApiError.Unauthorized) {
+                    return@fold false
+                }
+                Napier.d("checkTokenValidAndSetIsServerConnected, isServerConnected: false")
+                preferences.setIsServerConnected(false)
+                return@fold false
+            }
+        )
+    }
 
     private suspend fun flagCached(page: PagedItems<Book>): PagedItems<Book> {
         val cachedBooks = localCacheRepository.fetchCachedBookIds()

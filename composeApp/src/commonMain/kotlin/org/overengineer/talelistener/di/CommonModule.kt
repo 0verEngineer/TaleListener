@@ -15,8 +15,10 @@ import org.overengineer.talelistener.content.cache.api.CachedBookRepository
 import org.overengineer.talelistener.content.cache.api.CachedLibraryRepository
 import org.overengineer.talelistener.db.DBHolder
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
+import org.overengineer.talelistener.ui.viewmodel.CachingViewModel
+import org.overengineer.talelistener.ui.viewmodel.LibraryViewModel
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel
-import org.overengineer.talelistener.ui.viewmodel.SettingsScreenViewModel
+import org.overengineer.talelistener.ui.viewmodel.SettingsViewModel
 import org.overengineer.talelistener.ui.viewmodel.SplashScreenViewModel
 
 fun commonModule() = module {
@@ -73,6 +75,8 @@ fun commonModule() = module {
     ) }
 
     single { LoginViewModel(get(), get()) }
-    single { SettingsScreenViewModel() }
-    single { SplashScreenViewModel(get()) }
+    single { SettingsViewModel(get(), get()) }
+    single { SplashScreenViewModel(get(), get()) }
+    single { LibraryViewModel(get(), get()) }
+    single { CachingViewModel(get(), get()) }
 }

@@ -11,7 +11,7 @@ import org.overengineer.talelistener.domain.Library
 import org.overengineer.talelistener.domain.connection.ServerRequestHeader
 import org.overengineer.talelistener.platform.randomUUID
 
-// todo now: remove all not-needed stuff
+// todo: remove all not-needed stuff
 class TaleListenerSharedPreferences {
 
     private val settings: Settings = Settings()
@@ -41,7 +41,7 @@ class TaleListenerSharedPreferences {
         ))
     }
 
-    fun removeMulti(keys: List<String>) {
+    private fun removeMulti(keys: List<String>) {
         for (key in keys) {
             settings.remove(key)
         }
@@ -137,15 +137,22 @@ class TaleListenerSharedPreferences {
     private fun getPreferredLibraryName(): String? =
         settings.getStringOrNull(KEY_PREFERRED_LIBRARY_NAME)
 
-    fun enableIsOffline() =
-        settings.putBoolean(IS_OFFLINE, true)
+    fun setIsOffline(isOffline: Boolean) =
+        settings.putBoolean(IS_OFFLINE, isOffline)
 
-    fun disableIsOffline() =
-        settings.putBoolean(IS_OFFLINE, false)
-
-    // todo now: set this on app start, and if the server connection is dropped
     fun isOffline(): Boolean {
         return settings.getBoolean(IS_OFFLINE, false)
+    }
+
+    fun setIsServerConnected(isConnected: Boolean) =
+        settings.putBoolean(IS_SERVER_CONNECTED, isConnected)
+
+    fun isServerConnected(): Boolean {
+        return settings.getBoolean(IS_SERVER_CONNECTED, false)
+    }
+
+    fun isConnectedAndOnline(): Boolean {
+        return !isOffline() && isServerConnected()
     }
 
     fun saveUsername(username: String) =
@@ -182,6 +189,7 @@ class TaleListenerSharedPreferences {
         private const val KEY_USERNAME = "username"
         private const val KEY_TOKEN = "token"
         private const val IS_OFFLINE = "is_offline"
+        private const val IS_SERVER_CONNECTED = "is_server_connected"
 
         private const val KEY_SERVER_VERSION = "server_version"
 

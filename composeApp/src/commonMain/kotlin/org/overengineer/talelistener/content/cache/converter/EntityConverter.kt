@@ -173,7 +173,7 @@ fun personalizedFeedResponseAndProgressToRecentBookList(
         ?.map {
             RecentBook(
                 id = it.id,
-                title = it.media.metadata.title,
+                title = it.media!!.metadata.title,
                 author = it.media.metadata.authorName,
                 listenedPercentage = progress[it.id]?.let { it * 100 }?.toInt(),
             )

@@ -53,6 +53,8 @@ import com.dokar.sonner.rememberToasterState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.overengineer.talelistener.domain.error.LoginError
+import org.overengineer.talelistener.ui.screen.library.LibraryScreen
+import org.overengineer.talelistener.ui.screen.settings.SettingsScreen
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel
 import org.overengineer.talelistener.ui.viewmodel.LoginViewModel.LoginState
 import talelistener.composeapp.generated.resources.Res
@@ -105,7 +107,7 @@ class LoginScreen: Screen {
             when (loginState) {
                 is LoginState.Success -> {
                     toaster.dismissAll()
-                    navigator.push(HomeScreen())
+                    navigator.push(LibraryScreen())
                 }
                 is LoginState.Error -> loginError?.let {
                     val message = when (it) {

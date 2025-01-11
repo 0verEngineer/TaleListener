@@ -12,7 +12,6 @@ import org.overengineer.talelistener.sqldelight.LibraryEntity
 class CachedLibraryRepository (
     private val dbHolder: DBHolder
 ) {
-    // Todo: Should all libraries be updated like this, isn't only one better?
     suspend fun cacheLibraries(libraries: List<Library>) {
         withContext(Dispatchers.IO) {
             val entities = libraries.map {
@@ -31,13 +30,12 @@ class CachedLibraryRepository (
                 }
             }
 
-            // todo test this
             val placeholders = libraries.map { it.id }.joinToString(",") { "?" }
-            val sql = "DELETE FROM libraries WHERE id NOT IN ($placeholders)"
+            val sql = "DELETE FROM libraryEntity WHERE id NOT IN ($placeholders)"
 
             dbHolder.getDriver().execute(null, sql, libraries.size) {
                 libraries.map { it.id }.forEachIndexed { index, id ->
-                    bindString(index + 1, id)
+                    bindString(index, id)
                 }
             }
         }

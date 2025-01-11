@@ -34,6 +34,15 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            freeCompilerArgs += listOf(
+                "-framework", "Network"
+            )
+        }
+        iosTarget.compilations["main"].cinterops {
+            val network by creating {
+                defFile("src/iosMain/def/network.def")
+                packageName("platform.network")
+            }
         }
     }
     
@@ -68,6 +77,12 @@ kotlin {
             implementation(libs.material.icons.extended)
             implementation(libs.okio)
             implementation(libs.multiplatform.paths)
+            implementation(libs.compose.shimmer)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor2)
+            // paging
+            implementation(libs.paging.common)
+            implementation(libs.paging.compose.common)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -76,10 +91,16 @@ kotlin {
             //implementation(libs.koin.androidx.compose)
             implementation(libs.ktor.client.okhttp) // OkHttp engine for Android
             implementation(libs.android.driver)
+            // paging
+            implementation(libs.androidx.paging.runtime)
+            implementation(libs.androidx.paging.compose)
+            implementation(libs.androidx.paging.rxjava3)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin) // Darwin engine for iOS
             implementation(libs.native.driver)
+            // paging
+            implementation(libs.paging.runtime.uikit)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
