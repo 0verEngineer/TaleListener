@@ -180,6 +180,7 @@ class CachedBookRepository(
             lastUpdate = Clock.System.now().toEpochMilliseconds(),
         )
 
-        dbHolder.bookQueries.upsertMediaProgress(entity)
+        // todo: cacheBook is not called yet so we cannot save the progress
+        //dbHolder.bookQueries.upsertMediaProgress(entity)
     }
 }

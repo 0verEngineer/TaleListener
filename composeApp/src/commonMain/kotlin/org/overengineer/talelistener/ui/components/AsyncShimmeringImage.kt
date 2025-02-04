@@ -48,6 +48,7 @@ fun AsyncShimmeringImage(
     modifier: Modifier = Modifier,
     error: Painter,
     onLoadingStateChanged: (Boolean) -> Unit = {},
+    size: coil3.size.Size? = null
 ) {
     var isLoading by remember { mutableStateOf(true) }
     onLoadingStateChanged(isLoading)
@@ -61,13 +62,25 @@ fun AsyncShimmeringImage(
         }
         headerBuilder.add("Authorization", "Bearer $token")
 
-        ImageRequest.Builder(context)
-            .data(URLBuilder(host).apply {
-                path("api", "items", itemId, "cover")
-            }.build().toString())
-            .crossfade(true)
-            .httpHeaders(headerBuilder.build())
-            .build()
+        if (size != null) {
+            ImageRequest.Builder(context)
+                .data(URLBuilder(host).apply {
+                    path("api", "items", itemId, "cover")
+                }.build().toString())
+                .crossfade(true)
+                .httpHeaders(headerBuilder.build())
+                .size(size)
+                .build()
+        }
+        else {
+            ImageRequest.Builder(context)
+                .data(URLBuilder(host).apply {
+                    path("api", "items", itemId, "cover")
+                }.build().toString())
+                .crossfade(true)
+                .httpHeaders(headerBuilder.build())
+                .build()
+        }
     }
 
     Box(

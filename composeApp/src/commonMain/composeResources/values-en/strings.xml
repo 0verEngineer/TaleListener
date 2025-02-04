@@ -42,4 +42,17 @@
     <string name="custom_headers_hint">Specify headers for server connection</string>
     <string name="custom_header_hint_name">Key</string>
     <string name="custom_header_hint_value">Value</string>
+    <string name="player_screen_library_navigation">Library</string>
+    <string name="player_screen_chapter_list_navigation">Chapters</string>
+    <string name="player_screen_playback_speed_navigation">Speed</string>
+    <string name="player_screen_timer_navigation">Timer</string>
+    <string name="player_screen_now_playing_title">Playing chapters</string>
+    <string name="player_screen_title">Listening now</string>
+    <string name="player_screen_now_playing_title_chapter_of">Chapter %1$s of %2$s</string>
+    <string name="playback_speed_title">Playback speed</string>
+    <string name="timer_title">Sleep Timer</string>
+    <string name="timer_option_disable_timer">Disable Timer</string>
+    <string name="timer_option_after_current_episode">When the episode ends</string>
+    <string name="timer_option_after_minutes">%1$d minutes</string>
+    <string name="chapter_search_hint">Search by chapter title</string>
 </resources>

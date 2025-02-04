@@ -80,5 +80,4 @@ fun commonModule() = module {
     single { SplashScreenViewModel(get(), get()) }
     single { LibraryViewModel(get(), get()) }
     single { CachingViewModel(get(), get()) }
-    single { PlayerViewModel(get(), get()) }
 }

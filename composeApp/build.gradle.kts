@@ -91,10 +91,17 @@ kotlin {
             //implementation(libs.koin.androidx.compose)
             implementation(libs.ktor.client.okhttp) // OkHttp engine for Android
             implementation(libs.android.driver)
+            implementation(libs.androidx.localbroadcastmanager) // todo: deprecated, refactor and remove
             // paging
             implementation(libs.androidx.paging.runtime)
             implementation(libs.androidx.paging.compose)
             implementation(libs.androidx.paging.rxjava3)
+            // Exoplayer
+            implementation(libs.androidx.media3.exoplayer)
+            implementation(libs.androidx.media3.exoplayer.dash)
+            implementation(libs.androidx.media3.ui)
+            implementation(libs.androidx.media3.session)
+            implementation(libs.androidx.media3.datasource.okhttp)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin) // Darwin engine for iOS

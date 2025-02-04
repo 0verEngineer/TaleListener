@@ -42,4 +42,17 @@
     <string name="custom_headers_hint">Header für die Serververbindung</string>
     <string name="custom_header_hint_name">Key</string>
     <string name="custom_header_hint_value">Value</string>
+    <string name="player_screen_library_navigation">Bibliothek</string>
+    <string name="player_screen_chapter_list_navigation">Kapitel</string>
+    <string name="player_screen_playback_speed_navigation">Geschwindigkeit</string>
+    <string name="player_screen_timer_navigation">Timer</string>
+    <string name="player_screen_now_playing_title">Laufende Kapitel</string>
+    <string name="player_screen_title">Hören</string>
+    <string name="player_screen_now_playing_title_chapter_of">Kapitel %1$s von %2$s</string>
+    <string name="playback_speed_title">Playback Geschwindigkeit</string>
+    <string name="timer_title">Schlaftimer</string>
+    <string name="timer_option_disable_timer">Timer ausschalten</string>
+    <string name="timer_option_after_current_episode">Wenn die Episode endet</string>
+    <string name="timer_option_after_minutes">%1$d minuten</string>
+    <string name="chapter_search_hint">Suche nach Kapiteltitel</string>
 </resources>

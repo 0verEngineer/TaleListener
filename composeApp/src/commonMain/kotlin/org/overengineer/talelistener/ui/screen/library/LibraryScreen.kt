@@ -76,6 +76,7 @@ import org.overengineer.talelistener.ui.screen.library.composables.placeholder.L
 import org.overengineer.talelistener.ui.screen.library.composables.placeholder.RecentBooksPlaceholderComposable
 import org.overengineer.talelistener.ui.viewmodel.CachingViewModel
 import org.overengineer.talelistener.ui.viewmodel.LibraryViewModel
+import org.overengineer.talelistener.ui.viewmodel.PlayerViewModel
 import talelistener.composeapp.generated.resources.Res
 import talelistener.composeapp.generated.resources.continue_listening
 import talelistener.composeapp.generated.resources.library_title
@@ -83,7 +84,8 @@ import talelistener.composeapp.generated.resources.podcast_library_title
 import withMinimumTime
 
 
-// todo Lissen uses a BackHandler to dismiss the search, how to do it? - do we need it?
+// todo Lissen uses a BackHandler to dismiss the search
+//  -> BackHandler support is already merged: https://github.com/JetBrains/compose-multiplatform-core/pull/1771
 class LibraryScreen: Screen {
     @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
     @Composable
@@ -91,6 +93,7 @@ class LibraryScreen: Screen {
         val settings = koinInject<TaleListenerSharedPreferences>()
         val libraryViewModel = koinInject<LibraryViewModel>()
         val cachingViewModel = koinInject<CachingViewModel>()
+        val playerViewModel = koinInject<PlayerViewModel>()
         val networkQualityService = koinInject<NetworkQualityService>()
         val navigator = LocalNavigator.currentOrThrow
 
@@ -164,8 +167,7 @@ class LibraryScreen: Screen {
 
         val libraryListState = rememberLazyListState()
 
-        // todo player
-        //val playingBook by playerViewModel.book.observeAsState()
+        val playingBook by playerViewModel.book.collectAsState()
 
         fun showRecent(): Boolean {
             val fetchAvailable = settings.isConnectedAndOnline()

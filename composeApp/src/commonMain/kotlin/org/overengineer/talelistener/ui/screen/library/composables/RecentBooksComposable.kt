@@ -54,6 +54,7 @@ import org.overengineer.talelistener.domain.RecentBook
 import org.overengineer.talelistener.domain.connection.ServerRequestHeader
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 import org.overengineer.talelistener.ui.components.AsyncShimmeringImage
+import org.overengineer.talelistener.ui.screen.player.PlayerScreen
 import org.overengineer.talelistener.ui.theme.TLOrange
 import org.overengineer.talelistener.ui.viewmodel.LibraryViewModel
 import talelistener.composeapp.generated.resources.Res
@@ -114,8 +115,7 @@ fun RecentBookItemComposable(
         modifier = Modifier
             .width(width)
             .clickable {
-                // todo player
-                //navController.showPlayer(book.id, book.title)
+                navigator.push(PlayerScreen(book.id, book.title))
             },
     ) {
         var coverLoading by remember { mutableStateOf(true) }

@@ -59,6 +59,7 @@ import org.overengineer.talelistener.domain.connection.ServerRequestHeader
 import org.overengineer.talelistener.ui.components.AsyncShimmeringImage
 import org.overengineer.talelistener.common.BookCacheAction
 import org.overengineer.talelistener.ui.extensions.formatShortly
+import org.overengineer.talelistener.ui.screen.player.PlayerScreen
 import org.overengineer.talelistener.ui.viewmodel.CachingViewModel
 import talelistener.composeapp.generated.resources.Res
 import talelistener.composeapp.generated.resources.audiobook_fallback
@@ -83,7 +84,7 @@ fun BookComposable(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /*navController.showPlayer(book.id, book.title) todo player*/ }
+            .clickable { navigator.push(PlayerScreen(book.id, book.title)) }
             .testTag("bookItem_${book.id}")
             .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
