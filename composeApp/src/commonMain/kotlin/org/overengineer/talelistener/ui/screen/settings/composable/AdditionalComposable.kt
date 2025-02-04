@@ -2,13 +2,13 @@
 /*
  * This file is part of TaleListener, licensed under the GPLv3 license.
  * Original code by GrakovNe from the lissen project (https://github.com/GrakovNe/lissen-android), licensed under the MIT License.
- * Original file location: org.grakovne.lissen.ui.screens.settings.composeable
+ * Original file location: org.grakovne.lissen.ui.screens.settings.composable
  * Modifications:
  * - Updated package statement and adjusted imports.
  * - Updated to TaleListener app infos
  */
 
-package org.overengineer.talelistener.ui.screen.settings.composeable
+package org.overengineer.talelistener.ui.screen.settings.composable
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

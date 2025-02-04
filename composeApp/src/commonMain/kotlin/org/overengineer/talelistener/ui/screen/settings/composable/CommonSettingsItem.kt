@@ -1,4 +1,4 @@
-package org.overengineer.talelistener.ui.screen.settings.composeable
+package org.overengineer.talelistener.ui.screen.settings.composable
 
 import androidx.compose.ui.graphics.vector.ImageVector
 

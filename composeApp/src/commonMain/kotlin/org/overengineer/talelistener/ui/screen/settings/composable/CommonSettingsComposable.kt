@@ -9,7 +9,7 @@
  * - Removed the toItem methods and created the items inline
  */
 
-package org.overengineer.talelistener.ui.screen.settings.composeable
+package org.overengineer.talelistener.ui.screen.settings.composable
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

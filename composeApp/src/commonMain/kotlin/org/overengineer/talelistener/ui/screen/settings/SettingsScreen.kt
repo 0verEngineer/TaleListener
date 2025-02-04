@@ -41,10 +41,10 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-import org.overengineer.talelistener.ui.screen.settings.composeable.AdditionalComposable
-import org.overengineer.talelistener.ui.screen.settings.composeable.AdvancedSettingsItemComposable
-import org.overengineer.talelistener.ui.screen.settings.composeable.CommonSettingsComposable
-import org.overengineer.talelistener.ui.screen.settings.composeable.ServerSettingsComposable
+import org.overengineer.talelistener.ui.screen.settings.composable.AdditionalComposable
+import org.overengineer.talelistener.ui.screen.settings.composable.AdvancedSettingsItemComposable
+import org.overengineer.talelistener.ui.screen.settings.composable.CommonSettingsComposable
+import org.overengineer.talelistener.ui.screen.settings.composable.ServerSettingsComposable
 import org.overengineer.talelistener.ui.viewmodel.SettingsViewModel
 import talelistener.composeapp.generated.resources.Res
 import talelistener.composeapp.generated.resources.custom_headers_hint
