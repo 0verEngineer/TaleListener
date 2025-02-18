@@ -138,6 +138,7 @@ fun RecentBookItemComposable(
                     .clip(RoundedCornerShape(8.dp)),
                 error = painterResource(Res.drawable.audiobook_fallback),
                 onLoadingStateChanged = { coverLoading = it },
+                size = coil3.size.Size.ORIGINAL
             )
 
             if (!coverLoading && shouldShowProgress(book, libraryViewModel.fetchPreferredLibraryType())) {

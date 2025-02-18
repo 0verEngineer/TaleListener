@@ -75,6 +75,7 @@ import org.overengineer.talelistener.ui.components.ErrorComposable
 import org.overengineer.talelistener.ui.screen.library.composables.BookComposable
 import org.overengineer.talelistener.ui.screen.library.composables.DefaultActionComposable
 import org.overengineer.talelistener.ui.screen.library.composables.LibrarySearchActionComposable
+import org.overengineer.talelistener.ui.screen.library.composables.MiniPlayerComposable
 import org.overengineer.talelistener.ui.screen.library.composables.RecentBooksComposable
 import org.overengineer.talelistener.ui.screen.library.composables.fallback.LibraryFallbackComposable
 import org.overengineer.talelistener.ui.screen.library.composables.placeholder.LibraryPlaceholderComposable
@@ -267,15 +268,16 @@ class LibraryScreen: Screen {
                     )
                 },
                 bottomBar = {
-                    // todo player
-                    /*playingBook?.let {
+                    playingBook?.let {
                         MiniPlayerComposable(
-                            navController = navController,
+                            host = host,
+                            token = token,
+                            customHeaders = customHeaders,
+                            navigator = navigator,
                             book = it,
-                            imageLoader = imageLoader,
                             playerViewModel = playerViewModel,
                         )
-                    }*/
+                    }
                 },
                 modifier = Modifier
                     .systemBarsPadding()

@@ -23,7 +23,7 @@ fun App(
 
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
-            .logger(DebugLogger())
+            //.logger(DebugLogger()) // Coil logging
             .crossfade(true)
             .memoryCachePolicy(CachePolicy.ENABLED)
             .build()

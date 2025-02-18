@@ -101,6 +101,7 @@ fun BookComposable(
                 .aspectRatio(1f)
                 .clip(RoundedCornerShape(4.dp)),
             error = painterResource(Res.drawable.audiobook_fallback),
+            size = coil3.size.Size.ORIGINAL
         )
 
         Spacer(modifier = Modifier.width(16.dp))
