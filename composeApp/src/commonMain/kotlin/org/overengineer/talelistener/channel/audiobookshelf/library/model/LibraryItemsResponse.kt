@@ -32,6 +32,6 @@ data class Media(
 
 @Serializable
 data class LibraryMetadata(
-    val title: String?,
-    val authorName: String?,
+    val title: String? = null,
+    val authorName: String? = null,
 )

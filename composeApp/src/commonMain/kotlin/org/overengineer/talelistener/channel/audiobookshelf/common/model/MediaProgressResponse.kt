@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MediaProgressResponse(
     val libraryItemId: String,
-    val episodeId: String?,
+    val episodeId: String? = null,
     val currentTime: Double,
     val isFinished: Boolean,
     val lastUpdate: Long,

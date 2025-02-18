@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LoggedUserResponse(
     val user: User,
-    val userDefaultLibraryId: String?,
+    val userDefaultLibraryId: String? = null,
 )
 
 @Serializable

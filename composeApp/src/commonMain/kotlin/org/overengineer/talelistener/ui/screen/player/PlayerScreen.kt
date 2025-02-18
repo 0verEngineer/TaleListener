@@ -6,6 +6,7 @@
  * Modifications:
  * - Updated package statement
  * - Migrated to kotlin multiplatform
+ * - Use the isPlaybackPrepareError to render the ErrorComposable instead of the player stuff
  */
 
 package org.overengineer.talelistener.ui.screen.player
@@ -22,6 +23,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,6 +54,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
+import org.overengineer.talelistener.ui.components.ErrorComposable
 import org.overengineer.talelistener.ui.screen.player.composable.NavigationBarComposable
 import org.overengineer.talelistener.ui.screen.player.composable.PlayingQueueComposable
 import org.overengineer.talelistener.ui.screen.player.composable.TrackControlComposable
@@ -60,6 +63,7 @@ import org.overengineer.talelistener.ui.screen.player.composable.placeholder.Pla
 import org.overengineer.talelistener.ui.screen.player.composable.placeholder.TrackDetailsPlaceholderComposable
 import org.overengineer.talelistener.ui.viewmodel.PlayerViewModel
 import talelistener.composeapp.generated.resources.Res
+import talelistener.composeapp.generated.resources.playback_prepare_error
 import talelistener.composeapp.generated.resources.player_screen_now_playing_title
 import talelistener.composeapp.generated.resources.player_screen_title
 
@@ -76,6 +80,7 @@ class PlayerScreen(
 
         val playingBook by viewModel.book.collectAsState()
         val isPlaybackReady by viewModel.isPlaybackReady.collectAsState()
+        val isPlaybackPrepareError by viewModel.isPlaybackPrepareError.collectAsState()
         val playingQueueExpanded by viewModel.playingQueueExpanded.collectAsState()
         val searchRequested by viewModel.searchRequested.collectAsState()
 
@@ -177,33 +182,42 @@ class PlayerScreen(
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            if (!isPlaybackReady) {
-                                TrackDetailsPlaceholderComposable(bookTitle)
+                            if (isPlaybackPrepareError) {
+                                ErrorComposable(
+                                    error = stringResource(Res.string.playback_prepare_error),
+                                    modifier = Modifier.systemBarsPadding().fillMaxSize()
+                                )
                             } else {
-                                TrackDetailsComposable(
+                                if (!isPlaybackReady) {
+                                    TrackDetailsPlaceholderComposable(bookTitle)
+                                } else {
+                                    TrackDetailsComposable(
+                                        viewModel = viewModel,
+                                        settings = settings
+                                    )
+                                }
+
+                                TrackControlComposable(
                                     viewModel = viewModel,
-                                    settings = settings
+                                    modifier = Modifier,
                                 )
                             }
-
-                            TrackControlComposable(
-                                viewModel = viewModel,
-                                modifier = Modifier,
-                            )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    if (isPlaybackReady) {
-                        PlayingQueueComposable(
-                            viewModel = viewModel,
-                            modifier = Modifier,
-                        )
-                    } else {
-                        PlayingQueuePlaceholderComposable(
-                            modifier = Modifier,
-                        )
+                    if (!isPlaybackPrepareError) {
+                        if (isPlaybackReady) {
+                            PlayingQueueComposable(
+                                viewModel = viewModel,
+                                modifier = Modifier,
+                            )
+                        } else {
+                            PlayingQueuePlaceholderComposable(
+                                modifier = Modifier,
+                            )
+                        }
                     }
                 }
             },

@@ -23,14 +23,14 @@ data class BookResponse(
 @Serializable
 data class BookMedia(
     val metadata: LibraryMetadataResponse,
-    val audioFiles: List<BookAudioFileResponse>?,
-    val chapters: List<LibraryChapterResponse>?,
+    val audioFiles: List<BookAudioFileResponse>? = null,
+    val chapters: List<LibraryChapterResponse>? = null,
 )
 
 @Serializable
 data class LibraryMetadataResponse(
     val title: String,
-    val authors: List<LibraryAuthorResponse>?,
+    val authors: List<LibraryAuthorResponse>? = null,
 )
 
 @Serializable
@@ -45,7 +45,7 @@ data class BookAudioFileResponse(
     val ino: String,
     val duration: Double,
     val metadata: AudioFileMetadata,
-    val metaTags: AudioFileTag?,
+    val metaTags: AudioFileTag? = null,
     val mimeType: String,
 )
 
@@ -58,8 +58,8 @@ data class AudioFileMetadata(
 
 @Serializable
 data class AudioFileTag(
-    val tagAlbum: String,
-    val tagTitle: String,
+    val tagAlbum: String? = null,
+    val tagTitle: String? = null,
 )
 
 @Serializable

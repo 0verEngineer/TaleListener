@@ -6,6 +6,7 @@
  * Modifications:
  * - Updated package statement and adjusted imports.
  * - Migrated to kotlin multiplatform
+ * - Added _audioPlayerInitState and init for vlc discovery on desktop
  */
 
 package org.overengineer.talelistener.ui.viewmodel
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.overengineer.talelistener.common.AudioPlayerInitState
 import org.overengineer.talelistener.domain.BookChapter
 import org.overengineer.talelistener.domain.DetailedItem
 import org.overengineer.talelistener.domain.TimerOption
@@ -26,6 +28,9 @@ class PlayerViewModel(
     private val audioPlayer: AudioPlayer
 ) {
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private val _audioPlayerInitState = MutableStateFlow<AudioPlayerInitState?>(null)
+    val audioPlayerInitState: StateFlow<AudioPlayerInitState?> = _audioPlayerInitState.asStateFlow()
 
     val book: StateFlow<DetailedItem?> = audioPlayer.playingBook
 
@@ -39,6 +44,7 @@ class PlayerViewModel(
     val playingQueueExpanded: StateFlow<Boolean> = _playingQueueExpanded.asStateFlow()
 
     val isPlaybackReady: StateFlow<Boolean> = audioPlayer.isPlaybackReady
+    val isPlaybackPrepareError: StateFlow<Boolean> = audioPlayer.isPlaybackPrepareError
     val playbackSpeed: StateFlow<Float> = audioPlayer.playbackSpeed
 
     private val _searchRequested = MutableStateFlow(false)
@@ -49,6 +55,9 @@ class PlayerViewModel(
 
     val isPlaying: StateFlow<Boolean> = audioPlayer.isPlaying
 
+    init {
+        _audioPlayerInitState.value = audioPlayer.getInitState()
+    }
 
     fun expandPlayingQueue() {
         _playingQueueExpanded.value = true

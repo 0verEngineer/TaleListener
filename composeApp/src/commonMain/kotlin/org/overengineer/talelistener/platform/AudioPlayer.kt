@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,7 +33,7 @@ import org.overengineer.talelistener.playback.service.calculateChapterPosition
 
 
 abstract class AudioPlayer(
-    private val mediaChannel: TLMediaProvider
+    val mediaChannel: TLMediaProvider
 ) : IAudioPlayer {
     val playerScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -46,6 +45,9 @@ abstract class AudioPlayer(
 
     protected val _isPlaybackReady = MutableStateFlow(false)
     override val isPlaybackReady: StateFlow<Boolean> get() = _isPlaybackReady.asStateFlow()
+
+    protected val _isPlaybackPrepareError = MutableStateFlow(false)
+    override val isPlaybackPrepareError: StateFlow<Boolean> get() = _isPlaybackPrepareError.asStateFlow()
 
     protected val _totalPosition = MutableStateFlow(0.0)
     override val totalPosition: StateFlow<Double> get() = _totalPosition.asStateFlow()

@@ -23,21 +23,21 @@ data class PodcastResponse(
 @Serializable
 data class PodcastMedia(
     val metadata: PodcastMediaMetadataResponse,
-    val episodes: List<PodcastEpisodeResponse>?,
+    val episodes: List<PodcastEpisodeResponse>? = null,
 )
 
 @Serializable
 data class PodcastMediaMetadataResponse(
     val title: String,
-    val author: String?,
+    val author: String? = null,
 )
 
 @Serializable
 data class PodcastEpisodeResponse(
     val id: String,
-    val season: String?,
-    val episode: String?,
-    val pubDate: String?,
+    val season: String? = null,
+    val episode: String? = null,
+    val pubDate: String? = null,
     val title: String,
     val audioFile: PodcastAudioFileResponse,
 )

@@ -2,6 +2,7 @@ package org.overengineer.talelistener.platform
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
+import org.overengineer.talelistener.common.AudioPlayerInitState
 import org.overengineer.talelistener.domain.DetailedItem
 import org.overengineer.talelistener.domain.TimerOption
 
@@ -13,6 +14,7 @@ interface IAudioPlayer {
     val isPlaying: Flow<Boolean>
     val timerOption: Flow<TimerOption?>
     val isPlaybackReady: Flow<Boolean>
+    val isPlaybackPrepareError: Flow<Boolean>
     val totalPosition: Flow<Double>
     val playingBook: Flow<DetailedItem?>
     val playbackSpeed: Flow<Float>
@@ -20,6 +22,7 @@ interface IAudioPlayer {
     val currentChapterPosition: Flow<Double>
     val currentChapterDuration: Flow<Double>
 
+    fun getInitState(): AudioPlayerInitState
     fun updateTimer(timerOption: TimerOption?, position: Double? = null)
     fun rewind()
     fun forward()

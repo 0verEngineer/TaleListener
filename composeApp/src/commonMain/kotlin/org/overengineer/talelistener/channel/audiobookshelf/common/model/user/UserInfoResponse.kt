@@ -20,5 +20,5 @@ data class UserInfoResponse(
 
 @Serializable
 data class UserResponse(
-    val mediaProgress: List<MediaProgressResponse>?,
+    val mediaProgress: List<MediaProgressResponse>? = null,
 )

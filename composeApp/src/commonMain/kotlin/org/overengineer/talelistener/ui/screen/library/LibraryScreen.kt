@@ -7,6 +7,7 @@
  * - Updated package statement and adjusted imports.
  * - Migration to kotlin multiplatform
  * - Refactoring for TaleListeners offline detection
+ * - Added audioPlayerInitState with a warning, render the content only if the state is SUCCESS
  */
 
 package org.overengineer.talelistener.ui.screen.library
@@ -57,6 +58,8 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.dokar.sonner.Toaster
+import com.dokar.sonner.rememberToasterState
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -64,9 +67,11 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.overengineer.talelistener.channel.common.LibraryType
+import org.overengineer.talelistener.common.AudioPlayerInitState
 import org.overengineer.talelistener.domain.RecentBook
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 import org.overengineer.talelistener.platform.NetworkQualityService
+import org.overengineer.talelistener.ui.components.ErrorComposable
 import org.overengineer.talelistener.ui.screen.library.composables.BookComposable
 import org.overengineer.talelistener.ui.screen.library.composables.DefaultActionComposable
 import org.overengineer.talelistener.ui.screen.library.composables.LibrarySearchActionComposable
@@ -78,7 +83,9 @@ import org.overengineer.talelistener.ui.viewmodel.CachingViewModel
 import org.overengineer.talelistener.ui.viewmodel.LibraryViewModel
 import org.overengineer.talelistener.ui.viewmodel.PlayerViewModel
 import talelistener.composeapp.generated.resources.Res
+import talelistener.composeapp.generated.resources.android_callback_setup_fail
 import talelistener.composeapp.generated.resources.continue_listening
+import talelistener.composeapp.generated.resources.desktop_vlc_not_found
 import talelistener.composeapp.generated.resources.library_title
 import talelistener.composeapp.generated.resources.podcast_library_title
 import withMinimumTime
@@ -99,8 +106,13 @@ class LibraryScreen: Screen {
 
         val coroutineScope = rememberCoroutineScope()
 
+        val toaster = rememberToasterState()
+        Toaster(state = toaster)
+
         val titleTextStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
         val titleHeightDp = with(LocalDensity.current) { titleTextStyle.lineHeight.toPx().toDp() }
+
+        val audioPlayerInitState by playerViewModel.audioPlayerInitState.collectAsState()
 
         val recentBooks: List<RecentBook> by libraryViewModel.recentBooks.collectAsState()
         val hiddenBooks by libraryViewModel.hiddenBooks.collectAsState()
@@ -212,191 +224,216 @@ class LibraryScreen: Screen {
             }
         }
 
-
-        Scaffold(
-            topBar = {
-                TopAppBar( // todo experimental, change?
-                    actions = {
-                        AnimatedContent(
-                            targetState = searchRequested,
-                            label = "library_action_animation",
-                            transitionSpec = {
-                                fadeIn(animationSpec = keyframes { durationMillis = 150 }) togetherWith
-                                        fadeOut(animationSpec = keyframes { durationMillis = 150 })
-                            },
-                        ) { isSearchRequested ->
-                            when (isSearchRequested) {
-                                true -> LibrarySearchActionComposable(
-                                    onSearchDismissed = { libraryViewModel.dismissSearch() },
-                                    onSearchRequested = { libraryViewModel.updateSearch(it) },
-                                )
-
-                                false -> DefaultActionComposable(
-                                    navigator = navigator,
-                                    cachingViewModel = cachingViewModel,
-                                    libraryViewModel = libraryViewModel,
-                                    onContentRefreshing = { refreshContent(showRefreshing = false) },
-                                    onSearchRequested = { libraryViewModel.requestSearch() },
-                                )
-                            }
-                        }
-                    },
-                    title = {
-                        if (!searchRequested) {
-                            Text(
-                                text = navBarTitle,
-                                style = titleTextStyle,
-                                maxLines = 1,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                    },
-                    modifier = Modifier.systemBarsPadding(),
-                )
-            },
-            bottomBar = {
-                // todo player
-                /*playingBook?.let {
-                    MiniPlayerComposable(
-                        navController = navController,
-                        book = it,
-                        imageLoader = imageLoader,
-                        playerViewModel = playerViewModel,
-                    )
-                }*/
-            },
-            modifier = Modifier
-                .systemBarsPadding()
-                .fillMaxSize(),
-            content = { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .testTag("libraryScreen")
-                        .pullRefresh(pullRefreshState)
-                        .fillMaxSize(),
-                ) {
-                    LazyColumn(
-                        state = libraryListState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                    ) {
-                        item(key = "recent_books") {
-                            val showRecent = showRecent()
-
-                            when {
-                                isPlaceholderRequired -> {
-                                    RecentBooksPlaceholderComposable()
-                                    Spacer(modifier = Modifier.height(20.dp))
-                                }
-
-                                showRecent -> {
-                                    RecentBooksComposable(
-                                        navigator = navigator,
-                                        recentBooks = showingRecentBooks,
-                                        libraryViewModel = libraryViewModel,
-                                        settings = settings
+        when (audioPlayerInitState) {
+            AudioPlayerInitState.SUCCESS, AudioPlayerInitState.WAITING -> Scaffold(
+                topBar = {
+                    TopAppBar( // todo experimental, change?
+                        actions = {
+                            AnimatedContent(
+                                targetState = searchRequested,
+                                label = "library_action_animation",
+                                transitionSpec = {
+                                    fadeIn(animationSpec = keyframes { durationMillis = 150 }) togetherWith
+                                            fadeOut(animationSpec = keyframes { durationMillis = 150 })
+                                },
+                            ) { isSearchRequested ->
+                                when (isSearchRequested) {
+                                    true -> LibrarySearchActionComposable(
+                                        onSearchDismissed = { libraryViewModel.dismissSearch() },
+                                        onSearchRequested = { libraryViewModel.updateSearch(it) },
                                     )
 
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    false -> DefaultActionComposable(
+                                        navigator = navigator,
+                                        cachingViewModel = cachingViewModel,
+                                        libraryViewModel = libraryViewModel,
+                                        onContentRefreshing = { refreshContent(showRefreshing = false) },
+                                        onSearchRequested = { libraryViewModel.requestSearch() },
+                                    )
                                 }
                             }
-                        }
+                        },
+                        title = {
+                            if (!searchRequested) {
+                                Text(
+                                    text = navBarTitle,
+                                    style = titleTextStyle,
+                                    maxLines = 1,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        },
+                        modifier = Modifier.systemBarsPadding(),
+                    )
+                },
+                bottomBar = {
+                    // todo player
+                    /*playingBook?.let {
+                        MiniPlayerComposable(
+                            navController = navController,
+                            book = it,
+                            imageLoader = imageLoader,
+                            playerViewModel = playerViewModel,
+                        )
+                    }*/
+                },
+                modifier = Modifier
+                    .systemBarsPadding()
+                    .fillMaxSize(),
+                content = { innerPadding ->
+                    Box(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .testTag("libraryScreen")
+                            .pullRefresh(pullRefreshState)
+                            .fillMaxSize(),
+                    ) {
+                        LazyColumn(
+                            state = libraryListState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                        ) {
+                            item(key = "recent_books") {
+                                val showRecent = showRecent()
 
-                        item(key = "library_title") {
-                            if (!searchRequested && showRecent()) {
-                                AnimatedContent(
-                                    targetState = navBarTitle,
-                                    transitionSpec = {
-                                        fadeIn(
-                                            animationSpec =
-                                            tween(300),
-                                        ) togetherWith fadeOut(
-                                            animationSpec = tween(
-                                                300,
-                                            ),
+                                when {
+                                    isPlaceholderRequired -> {
+                                        RecentBooksPlaceholderComposable()
+                                        Spacer(modifier = Modifier.height(20.dp))
+                                    }
+
+                                    showRecent -> {
+                                        RecentBooksComposable(
+                                            navigator = navigator,
+                                            recentBooks = showingRecentBooks,
+                                            libraryViewModel = libraryViewModel,
+                                            settings = settings
                                         )
-                                    },
-                                    label = "library_header_fade",
-                                ) {
-                                    when {
-                                        it == provideLibraryTitle() ->
-                                            Spacer(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(titleHeightDp),
-                                            )
 
-                                        else -> Text(
-                                            style = titleTextStyle,
-                                            text = provideLibraryTitle(),
-                                            modifier = Modifier.fillMaxWidth(),
+                                        Spacer(modifier = Modifier.height(20.dp))
+                                    }
+                                }
+                            }
+
+                            item(key = "library_title") {
+                                if (!searchRequested && showRecent()) {
+                                    AnimatedContent(
+                                        targetState = navBarTitle,
+                                        transitionSpec = {
+                                            fadeIn(
+                                                animationSpec =
+                                                tween(300),
+                                            ) togetherWith fadeOut(
+                                                animationSpec = tween(
+                                                    300,
+                                                ),
+                                            )
+                                        },
+                                        label = "library_header_fade",
+                                    ) {
+                                        when {
+                                            it == provideLibraryTitle() ->
+                                                Spacer(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(titleHeightDp),
+                                                )
+
+                                            else -> Text(
+                                                style = titleTextStyle,
+                                                text = provideLibraryTitle(),
+                                                modifier = Modifier.fillMaxWidth(),
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            item(key = "library_spacer") { Spacer(modifier = Modifier.height(8.dp)) }
+
+                            when {
+                                isPlaceholderRequired -> item { LibraryPlaceholderComposable() }
+                                library.itemCount == 0 -> {
+                                    item {
+                                        LibraryFallbackComposable(
+                                            searchRequested = searchRequested,
+                                            networkQualityService = networkQualityService,
+                                            libraryViewModel = libraryViewModel,
+                                            settings = settings
+                                        )
+                                    }
+                                }
+
+                                else -> items(count = library.itemCount, key = { "library_item_$it" }) {
+                                    val book = library[it] ?: return@items
+                                    val isVisible = remember(hiddenBooks, book.id) {
+                                        derivedStateOf { libraryViewModel.isVisible(book.id) }
+                                    }
+
+                                    if (isVisible.value) {
+                                        BookComposable(
+                                            book = book,
+                                            host = host,
+                                            token = token,
+                                            customHeaders = customHeaders,
+                                            navigator = navigator,
+                                            cachingViewModel = cachingViewModel,
+                                            onRemoveBook = {
+                                                // todo test and understand this
+                                                if (!settings.isConnectedAndOnline()) {
+                                                    libraryViewModel.hideBook(book.id)
+
+                                                    val showingBooks = (0..<library.itemCount)
+                                                        .mapNotNull { index -> library[index] }
+                                                        .count { book -> libraryViewModel.isVisible(book.id) }
+
+                                                    if (showingBooks == 0) {
+                                                        refreshContent(false)
+                                                    }
+                                                }
+                                            },
                                         )
                                     }
                                 }
                             }
                         }
 
-                        item(key = "library_spacer") { Spacer(modifier = Modifier.height(8.dp)) }
-
-                        when {
-                            isPlaceholderRequired -> item { LibraryPlaceholderComposable() }
-                            library.itemCount == 0 -> {
-                                item {
-                                    LibraryFallbackComposable(
-                                        searchRequested = searchRequested,
-                                        networkQualityService = networkQualityService,
-                                        libraryViewModel = libraryViewModel,
-                                        settings = settings
-                                    )
-                                }
-                            }
-
-                            else -> items(count = library.itemCount, key = { "library_item_$it" }) {
-                                val book = library[it] ?: return@items
-                                val isVisible = remember(hiddenBooks, book.id) {
-                                    derivedStateOf { libraryViewModel.isVisible(book.id) }
-                                }
-
-                                if (isVisible.value) {
-                                    BookComposable(
-                                        book = book,
-                                        host = host,
-                                        token = token,
-                                        customHeaders = customHeaders,
-                                        navigator = navigator,
-                                        cachingViewModel = cachingViewModel,
-                                        onRemoveBook = {
-                                            // todo test and understand this
-                                            if (!settings.isConnectedAndOnline()) {
-                                                libraryViewModel.hideBook(book.id)
-
-                                                val showingBooks = (0..<library.itemCount)
-                                                    .mapNotNull { index -> library[index] }
-                                                    .count { book -> libraryViewModel.isVisible(book.id) }
-
-                                                if (showingBooks == 0) {
-                                                    refreshContent(false)
-                                                }
-                                            }
-                                        },
-                                    )
-                                }
-                            }
+                        if (!searchRequested) {
+                            PullRefreshIndicator(
+                                refreshing = pullRefreshing,
+                                state = pullRefreshState,
+                                contentColor = colorScheme.primary,
+                                modifier = Modifier.align(Alignment.TopCenter),
+                            )
                         }
                     }
-
-                    if (!searchRequested) {
-                        PullRefreshIndicator(
-                            refreshing = pullRefreshing,
-                            state = pullRefreshState,
-                            contentColor = colorScheme.primary,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                        )
-                    }
+                },
+            )
+            AudioPlayerInitState.ANDROID_CALLBACK_SETUP_FAIL -> Scaffold(
+                content = {
+                    ErrorComposable(
+                        error = stringResource(Res.string.android_callback_setup_fail),
+                        modifier = Modifier.systemBarsPadding().fillMaxSize()
+                    )
                 }
-            },
-        )
+            )
+            AudioPlayerInitState.DESKTOP_VLC_NOT_FOUND -> Scaffold(
+                content = {
+                    ErrorComposable(
+                        error = stringResource(Res.string.desktop_vlc_not_found),
+                        modifier = Modifier.systemBarsPadding().fillMaxSize()
+                    )
+                }
+            )
+            null -> Scaffold(
+                content = {
+                    ErrorComposable(
+                        error = stringResource(Res.string.android_callback_setup_fail),
+                        modifier = Modifier.systemBarsPadding().fillMaxSize()
+                    )
+                }
+            )
+        }
     }
 }
 

@@ -55,4 +55,7 @@
     <string name="timer_option_after_current_episode">When the episode ends</string>
     <string name="timer_option_after_minutes">%1$d minutes</string>
     <string name="chapter_search_hint">Search by chapter title</string>
+    <string name="android_callback_setup_fail">Failed to setup media player</string>
+    <string name="desktop_vlc_not_found">Unable to find VLC Media Player, make sure it is installed (version 3.x.x)</string>
+    <string name="playback_prepare_error">There was an error while preparing the chapters, please re-try or open an issue if this happens frequently</string>
 </resources>

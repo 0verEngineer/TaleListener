@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ConnectionInfoResponse(
     val user: ConnectionInfoUserResponse,
-    val serverSettings: ConnectionInfoServerResponse?,
+    val serverSettings: ConnectionInfoServerResponse? = null,
 )
 
 @Serializable
@@ -25,6 +25,6 @@ data class ConnectionInfoUserResponse(
 
 @Serializable
 data class ConnectionInfoServerResponse(
-    val version: String?,
-    val buildNumber: String?,
+    val version: String? = null,
+    val buildNumber: String? = null,
 )

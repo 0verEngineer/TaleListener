@@ -114,6 +114,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java) // Java engine for Desktop
             implementation(libs.sqlite.driver)
+            implementation(libs.vlcj)
         }
     }
 }

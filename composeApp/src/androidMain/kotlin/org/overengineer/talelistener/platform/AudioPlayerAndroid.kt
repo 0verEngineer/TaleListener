@@ -33,6 +33,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.overengineer.talelistener.common.AudioPlayerInitState
 import org.overengineer.talelistener.content.TLMediaProvider
 import org.overengineer.talelistener.domain.CurrentEpisodeTimerOption
 import org.overengineer.talelistener.domain.DetailedItem
@@ -61,6 +62,8 @@ class AudioPlayerAndroid(
 
     private val handler = Handler(Looper.getMainLooper())
 
+    private var isAudioPlayerInitialized : Boolean? = null
+
     init {
         val controllerBuilder = MediaController.Builder(context, token)
         val futureController = controllerBuilder.buildAsync()
@@ -70,6 +73,7 @@ class AudioPlayerAndroid(
             object : FutureCallback<MediaController> {
                 override fun onSuccess(controller: MediaController) {
                     mediaController = controller
+                    isAudioPlayerInitialized = true
 
                     LocalBroadcastManager
                         .getInstance(context)
@@ -95,6 +99,7 @@ class AudioPlayerAndroid(
 
                 override fun onFailure(t: Throwable) {
                     Napier.e("Unable to add callback to player")
+                    isAudioPlayerInitialized = false
                 }
             },
             MoreExecutors.directExecutor(),
@@ -126,6 +131,18 @@ class AudioPlayerAndroid(
                 _timerOption.value = null
             }
         }
+    }
+
+    override fun getInitState(): AudioPlayerInitState {
+        if (isAudioPlayerInitialized == null) {
+            return AudioPlayerInitState.WAITING
+        }
+
+        if (isAudioPlayerInitialized == true) {
+            return AudioPlayerInitState.SUCCESS
+        }
+
+        return AudioPlayerInitState.ANDROID_CALLBACK_SETUP_FAIL
     }
 
     override fun setPlaybackSpeed(factor: Float) {
@@ -167,7 +184,8 @@ class AudioPlayerAndroid(
             object : Runnable {
                 override fun run() {
                     updateProgress(detailedItem)
-                    handler.postDelayed(this, 500)
+                    // Todo: We update every 50ms for a smoother progress bar, is this a problem somehow
+                    handler.postDelayed(this, 50)
                 }
             },
             500,

@@ -27,6 +27,7 @@ okio = "3.9.1"
 pagingCommon = "3.3.0-alpha02-0.5.1"
 pagingRuntime = "3.3.0-alpha02"
 sonner = "0.3.8"
+vlcj = "4.9.0"
 voyagerNavigator = "1.0.0"
 
 [libraries]
@@ -70,6 +71,7 @@ paging-compose-common = { module = "app.cash.paging:paging-compose-common", vers
 paging-runtime-uikit = { module = "app.cash.paging:paging-runtime-uikit", version.ref = "pagingCommon" }
 sonner = { module = "io.github.dokar3:sonner", version.ref = "sonner" }
 sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "androidDriver" }
+vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyagerNavigator" }
 
 [plugins]

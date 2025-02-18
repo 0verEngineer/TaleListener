@@ -17,11 +17,11 @@ import kotlinx.serialization.Serializable
 data class DetailedItem(
     val id: String,
     val title: String,
-    val author: String?,
+    val author: String? = null,
     val files: List<BookFile>,
     val chapters: List<BookChapter>,
-    val progress: MediaProgress?,
-    val libraryId: String?,
+    val progress: MediaProgress? = null,
+    val libraryId: String? = null,
 )
 
 @Serializable
