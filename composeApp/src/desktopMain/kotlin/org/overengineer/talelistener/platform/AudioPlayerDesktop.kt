@@ -6,7 +6,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -15,14 +14,11 @@ import org.overengineer.talelistener.common.AudioPlayerInitState
 import org.overengineer.talelistener.content.TLMediaProvider
 import org.overengineer.talelistener.domain.DetailedItem
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
+import org.overengineer.talelistener.playback.service.PlaybackSynchronizationServiceDesktop
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
-import uk.co.caprica.vlcj.media.MediaRef
-import uk.co.caprica.vlcj.medialist.MediaList
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
-import uk.co.caprica.vlcj.player.list.MediaListPlayer
-import uk.co.caprica.vlcj.player.list.MediaListPlayerEventAdapter
 
 
 class AudioPlayerDesktop(
@@ -30,44 +26,72 @@ class AudioPlayerDesktop(
     mediaChannel: TLMediaProvider
 ) : AudioPlayer(mediaChannel) {
 
+    private var playbackSynchronizationService: PlaybackSynchronizationServiceDesktop? = null
     private var mediaPlayerFactory: MediaPlayerFactory? = null
-    private var mediaListPlayer: MediaListPlayer? = null
-    private var mediaListMediaPlayer: MediaPlayer? = null
-    private var mediaList: MediaList? = null
+    private var mediaPlayer: MediaPlayer? = null
     private var isVlcFound = false
 
     private var timerJob: Job? = null
 
     private var currentPlayingIndex = 0
 
+    // Is set to true in seekTo to disable event handling for the play and then pause calls in seekTo
+    private var isPlayingEventFromSeekTo = false
+    private var isPausedEventFromSeekTo = false
+
     init {
         isVlcFound = NativeDiscovery().discover()
 
         if (isVlcFound) {
             mediaPlayerFactory = MediaPlayerFactory()
-            mediaListMediaPlayer = mediaPlayerFactory!!.mediaPlayers().newMediaPlayer()
-            mediaListPlayer = mediaPlayerFactory!!.mediaPlayers().newMediaListPlayer()
-            mediaListPlayer?.mediaPlayer()?.setMediaPlayer(mediaListMediaPlayer)
-            mediaList = mediaPlayerFactory!!.media().newMediaList()
+            mediaPlayer = mediaPlayerFactory!!.mediaPlayers().newMediaPlayer()
+            playbackSynchronizationService = PlaybackSynchronizationServiceDesktop(
+                mediaChannel = mediaChannel,
+                sharedPreferences = preferences,
+                mediaPlayer = mediaPlayer!!,
+                audioPlayerDesktop = this
+            )
         }
 
-        mediaListMediaPlayer?.events()?.addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
+        mediaPlayer?.events()?.addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
             override fun playing(mediaPlayer: MediaPlayer) {
+                if (isPlayingEventFromSeekTo) {
+                    isPlayingEventFromSeekTo = false
+                    return
+                }
+                Napier.d("playing event")
                 _isPlaying.value = true
+                playbackSynchronizationService?.playing()
             }
 
             override fun paused(mediaPlayer: MediaPlayer) {
+                if (isPausedEventFromSeekTo) {
+                    isPausedEventFromSeekTo = false
+                    return
+                }
+                Napier.d("paused event")
                 _isPlaying.value = false
+                playbackSynchronizationService?.paused()
             }
 
-            override fun stopped(mediaPlayer: MediaPlayer) {
-                _isPlaying.value = false
+            override fun finished(mediaPlayer: MediaPlayer?) {
+                val book = _playingBook.value ?: return
+
+                if (currentPlayingIndex >= book.files.size) {
+                    Napier.d("finished event - end of book reached")
+                    _isPlaying.value = false
+                    playbackSynchronizationService?.finished()
+
+                } else {
+                    currentPlayingIndex++
+                    mediaPlayer?.submit {
+                        val playing = mediaPlayer.media().play(getMrlForIndex(currentPlayingIndex, book))
+                        Napier.d("finished event - next playing: $playing")
+                    }
+                }
             }
 
             override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-                // Could be used for manual update
-                //val test = mediaPlayer?.status()?.time()
-
                 CoroutineScope(Dispatchers.Main).launch {
                     val files = playingBook.value?.files
                     if (files == null) {
@@ -82,27 +106,14 @@ class AudioPlayerDesktop(
             }
         })
 
-        mediaListPlayer?.events()?.addMediaListPlayerEventListener(object : MediaListPlayerEventAdapter() {
-            override fun mediaListPlayerFinished(mediaListPlayer: MediaListPlayer?) {
-                _isPlaying.value = false
-            }
-
-            override fun nextItem(mediaListPlayer: MediaListPlayer?, item: MediaRef?) {
-                currentPlayingIndex++
-            }
-
-            override fun stopped(mediaListPlayer: MediaListPlayer?) {
-                _isPlaying.value = false
-            }
-        })
-
         // Restore default playback speed from preferences
         val lastSpeed = preferences.getPlaybackSpeed()
         _playbackSpeed.value = lastSpeed
-        mediaListMediaPlayer?.controls()?.setRate(lastSpeed)
+        mediaPlayer?.controls()?.setRate(lastSpeed)
     }
 
     override fun getInitState(): AudioPlayerInitState {
+        Napier.d("getInitState()")
         if (isVlcFound) {
             return AudioPlayerInitState.SUCCESS
         }
@@ -110,14 +121,16 @@ class AudioPlayerDesktop(
     }
 
     override fun setPlaybackSpeed(factor: Float) {
+        Napier.d("setPlaybackSpeed($factor)")
         val speed = factor.coerceIn(0.5f, 3.0f)
-        mediaListMediaPlayer?.controls()?.setRate(speed)
+        mediaPlayer?.controls()?.setRate(speed)
 
         _playbackSpeed.value = speed
         preferences.savePlaybackSpeed(speed)
     }
 
     override fun scheduleServiceTimer(delay: Double) {
+        Napier.d("scheduleServiceTimer($delay)")
         if (delay < 0) {
             return
         }
@@ -137,13 +150,16 @@ class AudioPlayerDesktop(
     }
 
     override fun cancelServiceTimer() {
+        Napier.d("cancelServiceTimer()")
         timerJob?.cancel()
-        Napier.d("Timer cancelled")
     }
 
-    override fun startUpdatingProgress(detailedItem: DetailedItem) {}
+    override fun startUpdatingProgress(detailedItem: DetailedItem) {
+        Napier.d("startUpdatingProgress noop called with book: ${detailedItem.title}; id: $detailedItem.id")
+    }
 
     override fun startPreparingPlayback(book: DetailedItem, fromBackground: Boolean) {
+        Napier.d("startPreparingPlayback book: ${book.title}; fromBackground: $fromBackground")
         if (_playingBook.value != book) {
             _totalPosition.value = 0.0
             _isPlaying.value = false
@@ -155,24 +171,30 @@ class AudioPlayerDesktop(
     }
 
     override fun updateProgress(book: DetailedItem): Deferred<Unit> {
+        Napier.d("updateProgress noop called with book: ${book.title}")
         return CoroutineScope(Dispatchers.Main).async {  }
     }
 
     // seekTo has to be called before because of play/pause logic in vlc
     override fun play() {
-        if (mediaListPlayer?.status()?.isPlaying == true) {
+        val isPlaying = mediaPlayer?.status()?.isPlaying ?: false
+        Napier.d("play() - isPlaying: $isPlaying")
+
+        if (isPlaying) {
             return
         }
 
-        mediaListMediaPlayer?.controls()?.setRate(preferences.getPlaybackSpeed())
-        mediaListPlayer?.controls()?.setPause(false)
+        mediaPlayer?.controls()?.setRate(preferences.getPlaybackSpeed())
+        mediaPlayer?.controls()?.setPause(false)
     }
 
     override fun pause() {
-        mediaListPlayer?.controls()?.setPause(true)
+        Napier.d("pause()")
+        mediaPlayer?.controls()?.setPause(true)
     }
 
     override fun seekTo(position: Double) {
+        Napier.d("seekTo($position)")
         val book = playingBook.value ?: return
 
         val overallDuration = book
@@ -193,72 +215,56 @@ class AudioPlayerDesktop(
 
         val targetChapterIndex = cumulativeDurationMs.indexOfFirst { it > positionMs }
 
-        val isPlaying = mediaListPlayer?.status()?.isPlaying ?: false
+        val isPlaying = mediaPlayer?.status()?.isPlaying ?: false
 
-        // todo desktop-audio: If this happens the progress bar is always at the start instead of the end
+        isPausedEventFromSeekTo = true
+        isPlayingEventFromSeekTo = true
+
         if (targetChapterIndex == -1) {
             val lastChapterIndex = book.files.size - 1
             val lastChapterDurationMs = durationMs.last()
-            // play with index will return false if we don't call normal play before (only first time)
-            mediaListPlayer?.controls()?.play()
-            if (mediaListPlayer?.controls()?.play(lastChapterIndex) == true) {
-                if (!isPlaying) {
-                    mediaListPlayer?.controls()?.setPause(true)
-                }
 
-                mediaListMediaPlayer?.controls()?.setTime(lastChapterDurationMs)
-                _totalPosition.value = cumulativeDurationMs.last().toDouble() // todo desktop-audio: test, is this wrong and the issue of the progress bar?
-                currentPlayingIndex = lastChapterIndex
-            }
+            mediaPlayer?.media()?.play(getMrlForIndex(lastChapterIndex, book))
+            mediaPlayer?.controls()?.setTime(lastChapterDurationMs)
+            mediaPlayer?.controls()?.pause()
+            _totalPosition.value = (cumulativeDurationMs.last() / 1000).toDouble()
+            currentPlayingIndex = lastChapterIndex
+            _isPlaying.value = false
+
             return
         }
 
         val chapterStartTimeMs = cumulativeDurationMs[targetChapterIndex - 1]
         val chapterProgressMs = positionMs - chapterStartTimeMs
 
-        // todo desktop-audio: prefetch stream error on progress bar drag
+        mediaPlayer?.media()?.play(getMrlForIndex(targetChapterIndex - 1, book))
 
-        // todo desktop-audio: open vlc issue for this play stuff: https://code.videolan.org/videolan/vlc/-/issues
-        // todo desktop-audio: this leads also to multiple vlc errors/warnings
-        // play with index will return false if we don't call normal play before (only first time)
-        mediaListPlayer?.controls()?.play()
-        val playSuccess = mediaListPlayer?.controls()?.play(targetChapterIndex -1)
-        if (playSuccess == true) {
-            if (!isPlaying) {
-                mediaListPlayer?.controls()?.setPause(true)
-            }
-
-            mediaListMediaPlayer?.controls()?.setTime(chapterProgressMs)
-            _totalPosition.value = safePosition
-            currentPlayingIndex = targetChapterIndex - 1
+        if (!isPlaying) {
+            // We play and then pause to later use setPause(false) to play with the correct time
+            mediaPlayer?.controls()?.setPause(true)
         }
+
+        mediaPlayer?.controls()?.setTime(chapterProgressMs)
+        _totalPosition.value = safePosition
+        currentPlayingIndex = targetChapterIndex - 1
+    }
+
+    private fun getMrlForIndex(index: Int, book: DetailedItem) : String {
+        val file = book.files[index]
+        return mediaChannel.provideFileUrl(book.id, file.id).toString()
     }
 
     private suspend fun preparePlaybackDesktop(book: DetailedItem) {
+        Napier.d("preparePlaybackDesktop book: ${book.title}")
         withContext(Dispatchers.IO) {
             _isPlaybackPrepareError.value = false
-            val prepareQueue = async {
-                mediaList?.media()?.clear()
 
-                book.files.forEach { file ->
-                    val mrl = mediaChannel.provideFileUrl(book.id, file.id).toString()
-                    if (mediaList?.media()?.add(mrl) != true) {
-                        _isPlaybackPrepareError.value = true
-                    }
-                }
-
-                mediaListPlayer?.list()?.setMediaList(mediaList?.newMediaListRef())
-            }
-
-            val prepareSession = async {
-                // todo desktop-audio: make the service abstract
-                // todo desktop-audio: only start if _isPlaybackPrepareError is false
-                //playbackSynchronizationService.startPlaybackSynchronization(book)
-            }
-
-            awaitAll(prepareSession, prepareQueue)
+            mediaPlayer?.media()?.reset()
+            mediaPlayer?.media()?.prepare(getMrlForIndex(0, book))
 
             if (!_isPlaybackPrepareError.value) {
+                playbackSynchronizationService?.preparePlaybackSynchronization(book)
+
                 withContext(Dispatchers.Main) {
                     _playingBook.value = book
 
@@ -273,5 +279,11 @@ class AudioPlayerDesktop(
                 }
             }
         }
+    }
+
+    fun release() {
+        timerJob?.cancel()
+        mediaPlayer?.release()
+        mediaPlayerFactory?.release()
     }
 }

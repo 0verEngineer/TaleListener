@@ -25,7 +25,7 @@ import org.overengineer.talelistener.domain.TimerOption
 import org.overengineer.talelistener.platform.AudioPlayer
 
 class PlayerViewModel(
-    private val audioPlayer: AudioPlayer
+    public val audioPlayer: AudioPlayer
 ) {
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

@@ -9,5 +9,6 @@ import org.overengineer.talelistener.ui.viewmodel.PlayerViewModel
 actual fun platformModule() = module {
     single { DriverFactory() }
     single { NetworkQualityService(get(), get()) }
-    single { PlayerViewModel(AudioPlayerDesktop(get(), get())) }
+    single { AudioPlayerDesktop(get(), get()) }
+    single { PlayerViewModel(get<AudioPlayerDesktop>()) }
 }

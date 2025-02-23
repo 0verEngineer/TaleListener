@@ -8,6 +8,7 @@ import io.github.aakira.napier.Napier
 import org.koin.core.context.startKoin
 import org.overengineer.talelistener.di.commonModule
 import org.overengineer.talelistener.di.platformModule
+import org.overengineer.talelistener.platform.AudioPlayerDesktop
 import org.overengineer.talelistener.platform.NetworkQualityService
 
 fun main() = application {
@@ -18,10 +19,12 @@ fun main() = application {
     }.koin
 
     val networkService = koinApp.get<NetworkQualityService>()
+    val audioPlayer = koinApp.get<AudioPlayerDesktop>()
 
     Window(
         onCloseRequest = {
             networkService.close()
+            audioPlayer.release()
             exitApplication()
         },
         title = "TaleListener",

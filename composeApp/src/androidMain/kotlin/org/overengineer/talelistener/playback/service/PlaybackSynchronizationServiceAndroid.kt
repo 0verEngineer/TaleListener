@@ -13,27 +13,18 @@ package org.overengineer.talelistener.playback.service
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.overengineer.talelistener.content.TLMediaProvider
 import org.overengineer.talelistener.domain.DetailedItem
 import org.overengineer.talelistener.domain.PlaybackProgress
-import org.overengineer.talelistener.domain.PlaybackSession
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
 
-// todo: interface / abstract just like the AudioPlayer? -> check how it will work IOS an desktop
-class PlaybackSynchronizationService (
+class PlaybackSynchronizationServiceAndroid (
     private val exoPlayer: ExoPlayer,
-    private val mediaChannel: TLMediaProvider,
-    private val sharedPreferences: TaleListenerSharedPreferences,
-) {
-
-    private var currentBook: DetailedItem? = null
-    private var currentChapterIndex: Int? = null
-    private var playbackSession: PlaybackSession? = null
-    private val serviceScope = MainScope()
+    mediaChannel: TLMediaProvider,
+    sharedPreferences: TaleListenerSharedPreferences,
+) : PlaybackSynchronizationService(mediaChannel, sharedPreferences) {
 
     init {
         exoPlayer.addListener(object : Player.Listener {
@@ -47,12 +38,7 @@ class PlaybackSynchronizationService (
         })
     }
 
-    fun startPlaybackSynchronization(book: DetailedItem) {
-        serviceScope.coroutineContext.cancelChildren()
-        currentBook = book
-    }
-
-    private fun scheduleSynchronization() {
+    override fun scheduleSynchronization() {
         serviceScope
             .launch {
                 if (exoPlayer.isPlaying) {
@@ -63,7 +49,7 @@ class PlaybackSynchronizationService (
             }
     }
 
-    private fun executeSynchronization() {
+    override fun executeSynchronization() {
         val elapsedMs = exoPlayer.currentPosition
         val overallProgress = getProgress(elapsedMs)
 
@@ -76,48 +62,7 @@ class PlaybackSynchronizationService (
             }
     }
 
-    private suspend fun synchronizeProgress(
-        it: PlaybackSession,
-        overallProgress: PlaybackProgress,
-    ): Unit? {
-        val currentIndex = currentBook
-            ?.let { calculateChapterIndex(it, overallProgress.currentTime) }
-            ?: 0
-
-        if (currentIndex != currentChapterIndex) {
-            openPlaybackSession(overallProgress)
-            currentChapterIndex = currentIndex
-        }
-
-        return mediaChannel
-            .syncProgress(
-                sessionId = it.sessionId,
-                bookId = it.bookId,
-                progress = overallProgress,
-            )
-            .foldAsync(
-                onSuccess = {},
-                onFailure = { openPlaybackSession(overallProgress) },
-            )
-    }
-
-    private suspend fun openPlaybackSession(overallProgress: PlaybackProgress) = currentBook
-        ?.let { book ->
-            val chapterIndex = calculateChapterIndex(book, overallProgress.currentTime)
-            mediaChannel
-                .startPlayback(
-                    bookId = book.id,
-                    deviceId = sharedPreferences.getDeviceId(),
-                    supportedMimeTypes = MimeTypeProvider.getSupportedMimeTypes(),
-                    chapterId = book.chapters[chapterIndex].id,
-                )
-                .fold(
-                    onSuccess = { playbackSession = it },
-                    onFailure = {},
-                )
-        }
-
-    private fun getProgress(currentElapsedMs: Long): PlaybackProgress {
+    override fun getProgress(currentElapsedMs: Long): PlaybackProgress {
         val currentBook = exoPlayer
             .currentMediaItem
             ?.localConfiguration
@@ -138,10 +83,5 @@ class PlaybackSynchronizationService (
             currentTime = totalElapsedMs / 1000.0,
             totalTime = totalDuration / 1000.0,
         )
-    }
-
-    companion object {
-
-        private const val SYNC_INTERVAL = 30_000L
     }
 }

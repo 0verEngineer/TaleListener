@@ -51,7 +51,7 @@ class PlaybackService : MediaSessionService() {
     private val exoPlayer: ExoPlayer by inject()
     private val mediaSession: MediaSession by inject()
     private val mediaChannel: TLMediaProvider by inject()
-    private val playbackSynchronizationService: PlaybackSynchronizationService by inject()
+    private val playbackSynchronizationService: PlaybackSynchronizationServiceAndroid by inject()
     private val sharedPreferences: TaleListenerSharedPreferences by inject()
 
     private val playerServiceScope = MainScope()
@@ -184,7 +184,7 @@ class PlaybackService : MediaSessionService() {
             }
 
             val prepareSession = async {
-                playbackSynchronizationService.startPlaybackSynchronization(book)
+                playbackSynchronizationService.preparePlaybackSynchronization(book)
             }
 
             awaitAll(prepareSession, prepareQueue)
