@@ -53,6 +53,8 @@ class AudioPlayerDesktop(
             )
         }
 
+        // todo now: check this out: https://github.com/JetBrains/compose-multiplatform/blob/master/experimental/components/VideoPlayer/library/src/desktopMain/kotlin/org/jetbrains/compose/videoplayer/DesktopVideoPlayer.kt
+        //  -> they work with DisposableEffect, etc.
         mediaPlayer?.events()?.addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
             override fun playing(mediaPlayer: MediaPlayer) {
                 if (isPlayingEventFromSeekTo) {

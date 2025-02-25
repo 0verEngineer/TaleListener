@@ -155,7 +155,7 @@ compose.desktop {
         mainClass = "org.overengineer.talelistener.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
             packageName = "org.overengineer.talelistener"
             packageVersion = "1.0.0"
 

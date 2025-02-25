@@ -7,10 +7,12 @@ package org.overengineer.talelistener.ui.screen.library.paging
  * Modifications:
  * - Updated package statement and adjusted imports.
  * - Use app.cash.paging instead of androidx.paging
+ * - Added logging
  */
 
 import app.cash.paging.PagingSource
 import app.cash.paging.PagingState
+import io.github.aakira.napier.Napier
 import org.overengineer.talelistener.content.TLMediaProvider
 import org.overengineer.talelistener.domain.Book
 import org.overengineer.talelistener.persistence.preferences.TaleListenerSharedPreferences
@@ -34,7 +36,11 @@ class LibraryDefaultPagingSource(
         val libraryId = preferences
             .getPreferredLibrary()
             ?.id
-            ?: return LoadResult.Page(emptyList(), null, null)
+
+        if (libraryId == null) {
+            Napier.d("preferred library not set, returning empty page")
+            return LoadResult.Page(emptyList(), null, null)
+        }
 
         return mediaChannel
             .fetchBooks(
