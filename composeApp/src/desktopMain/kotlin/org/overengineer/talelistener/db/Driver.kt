@@ -13,6 +13,7 @@ actual class DriverFactory {
 
     actual fun createDriver(): SqlDriver {
         val dbPath = getDatabasePath()
+        Napier.d("dbPath: $dbPath")
         val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:$dbPath",
             properties = Properties().apply { put("foreign_keys", "true") }
         )
@@ -37,11 +38,16 @@ actual class DriverFactory {
             "$projectDir/devData/database.db"
         } else {
             val homeDir = System.getProperty("user.home")
-            when (val osName = System.getProperty("os.name").lowercase()) {
-                in "mac" -> "$homeDir/Library/Application Support/$appName/database.db"
-                in "win" -> "${System.getenv("APPDATA")}/$appName/database.db"
-                else -> "$homeDir/.config/$appName/database.db"
+            val osName = System.getProperty("os.name").lowercase()
+            var result = "$homeDir/.config/$appName/database.db"
+            if (osName.contains("win")) {
+                result = "${System.getenv("APPDATA")}/$appName/database.db"
             }
+            else if (osName.contains("mac")) {
+                result = "$homeDir/Library/Application Support/$appName/database.db"
+            }
+
+            result
         }.also { path ->
             File(path).parentFile.mkdirs()
         }

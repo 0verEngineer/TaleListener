@@ -40,6 +40,7 @@ class AudioPlayerDesktop(
     private var isPausedEventFromSeekTo = false
 
     init {
+        // todo launch async because it is very slow on windows if not found
         isVlcFound = NativeDiscovery().discover()
 
         if (isVlcFound) {
