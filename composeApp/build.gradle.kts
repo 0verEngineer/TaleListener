@@ -155,14 +155,34 @@ compose.desktop {
         mainClass = "org.overengineer.talelistener.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
-            packageName = "org.overengineer.talelistener"
+            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm)
+            packageName = "TaleListener"
             packageVersion = "1.0.0"
+            copyright = "todo"
+            vendor = "todo"
+
+            modules("java.net.http", "java.sql")
 
             // Application/Title bar theme color in MacOS
             jvmArgs(
                 "-Dapple.awt.application.appearance=system"
             )
+
+            windows {
+                menu = true
+            }
+
+            /*macOS {
+                iconFile.set(project.file("app_icon.icns"))
+            }
+
+            windows {
+                iconFile.set(project.file("app_icon.png"))
+            }
+
+            linux {
+                iconFile.set(project.file("app_icon.png"))
+            }*/
         }
     }
 }
