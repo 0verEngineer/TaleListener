@@ -41,7 +41,9 @@ class AudioPlayerDesktop(
 
     init {
         // todo launch async because it is very slow on windows if not found
+        Napier.d("NativeDiscovery starting")
         isVlcFound = NativeDiscovery().discover()
+        Napier.d("NativeDiscovery finished, found: $isVlcFound")
 
         if (isVlcFound) {
             mediaPlayerFactory = MediaPlayerFactory()
@@ -260,7 +262,7 @@ class AudioPlayerDesktop(
         withContext(Dispatchers.IO) {
             _isPlaybackPrepareError.value = false
 
-            mediaPlayer?.media()?.reset()
+            mediaPlayer?.controls()?.stop()
             mediaPlayer?.media()?.prepare(getMrlForIndex(0, book))
 
             if (!_isPlaybackPrepareError.value) {

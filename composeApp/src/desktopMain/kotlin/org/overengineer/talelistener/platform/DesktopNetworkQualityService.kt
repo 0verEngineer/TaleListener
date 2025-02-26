@@ -1,5 +1,6 @@
 package org.overengineer.talelistener.platform
 
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,6 +53,7 @@ actual class NetworkQualityService(
     }
 
     private fun checkToken() {
+        Napier.d("checkToken")
         scope.launch { mediaProvider.checkTokenValidAndSetIsServerConnected() }
     }
 
@@ -70,6 +72,7 @@ actual class NetworkQualityService(
                 responseCode in 200..299
             } ?: false
         } catch (e: IOException) {
+            Napier.d("IOException on network check ping")
             false
         }
     }

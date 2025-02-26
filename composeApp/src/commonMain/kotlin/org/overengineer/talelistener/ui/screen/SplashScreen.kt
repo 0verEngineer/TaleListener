@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.aakira.napier.Napier
 import org.koin.compose.koinInject
 import org.overengineer.talelistener.ui.screen.library.LibraryScreen
 import org.overengineer.talelistener.ui.viewmodel.SplashScreenViewModel
@@ -33,14 +34,18 @@ class SplashScreen: Screen {
         LaunchedEffect(tokenValid) {
             if (tokenValid != null) {
                 if (tokenValid == true || !isConnected) {
+                    Napier.d("token is valid or we are not connected, navigating to LibraryScreen")
                     navigator.replaceAll(LibraryScreen())
                 } else {
+                    Napier.d("token invalid, navigating to LoginScreen")
                     navigator.replaceAll(LoginScreen())
                 }
             } else {
                 if (!viewModel.hasCredentials()) {
+                    Napier.d("No credentials, navigating to LoginScreen")
                     navigator.replaceAll(LoginScreen())
                 } else {
+                    Napier.d("Credentials found, test token")
                     viewModel.isTokenValid()
                 }
             }
