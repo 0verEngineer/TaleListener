@@ -19,7 +19,7 @@ fun App(
     darkTheme: Boolean,
     dynamicColor: Boolean
 ) {
-    Napier.d("darkTheme: $darkTheme")
+    Napier.d("App start; darkTheme: $darkTheme")
 
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)

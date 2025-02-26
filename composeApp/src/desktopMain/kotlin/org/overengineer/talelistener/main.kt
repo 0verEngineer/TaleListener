@@ -14,17 +14,23 @@ import org.overengineer.talelistener.platform.NetworkQualityService
 fun main() = application {
     Napier.base(DebugAntilog())
 
+    Napier.d("Starting Koin")
     val koinApp = startKoin {
         modules(commonModule(), platformModule())
     }.koin
+    Napier.d("Koin started")
 
     val networkService = koinApp.get<NetworkQualityService>()
     val audioPlayer = koinApp.get<AudioPlayerDesktop>()
 
+    Napier.d("Creating app/window now")
+
     Window(
         onCloseRequest = {
+            Napier.d("Window close request")
             networkService.close()
             audioPlayer.release()
+            Napier.d("Cleanup complete, exiting now")
             exitApplication()
         },
         title = "TaleListener",

@@ -27,7 +27,7 @@ okio = "3.9.1"
 pagingCommon = "3.3.0-alpha02-0.5.1"
 pagingRuntime = "3.3.0-alpha02"
 sonner = "0.3.8"
-vlcj = "4.9.0"
+vlcj = "4.8.2"
 voyagerNavigator = "1.0.0"
 
 [libraries]

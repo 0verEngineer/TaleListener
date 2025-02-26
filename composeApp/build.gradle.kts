@@ -162,6 +162,8 @@ compose.desktop {
             vendor = "todo"
 
             modules("java.net.http", "java.sql")
+            // gradle thinks we need this modules, but it works with the ones above for now
+            //modules("java.instrument", "java.management", "java.net.http", "java.prefs", "java.sql", "jdk.unsupported", "jdk.crypto.ec")
 
             // Application/Title bar theme color in MacOS
             jvmArgs(
@@ -172,6 +174,7 @@ compose.desktop {
                 menu = true
             }
 
+            // todo icons
             /*macOS {
                 iconFile.set(project.file("app_icon.icns"))
             }
