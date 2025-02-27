@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>TaleListener</id>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>GPL-3.0</project_license>
+	<name>TaleListener</name>
+	<summary>Client application for your Audiobookshelf server</summary>
+	<description>
+		<p>Client application for your Audiobookshelf server</p>
+	</description>
+	<launchable type="desktop-id">TaleListener.desktop</launchable>
+	<url type="homepage">https://github.com/0verEngineer/TaleListener</url>
+	<screenshots>
+		<screenshot type="default">
+			<image></image>
+		</screenshot>
+	</screenshots>
+	<provides>
+		<id>TaleListener.desktop</id>
+	</provides>
+</component>

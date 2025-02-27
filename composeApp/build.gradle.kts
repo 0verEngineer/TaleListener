@@ -115,6 +115,11 @@ kotlin {
             implementation(libs.ktor.client.java) // Java engine for Desktop
             implementation(libs.sqlite.driver)
             implementation(libs.vlcj)
+
+            // Proguard
+            // Eventually needed everywhere and not just desktop, check proguard
+            implementation("org.slf4j:slf4j-api:2.0.5")
+            implementation("org.slf4j:slf4j-simple:1.6.1")
         }
     }
 }
@@ -155,11 +160,19 @@ compose.desktop {
         mainClass = "org.overengineer.talelistener.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm)
+            val osName = System.getProperty("os.name").toLowerCase()
+            val targetFormats = when {
+                osName.contains("win") -> listOf(TargetFormat.Exe)
+                osName.contains("mac") -> listOf(TargetFormat.Dmg)
+                osName.contains("nux") -> listOf(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
+                else -> listOf(TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage, TargetFormat.Dmg) // fallback option
+            }
+            targetFormats(*targetFormats.toTypedArray())
+            
             packageName = "TaleListener"
             packageVersion = "1.0.0"
-            copyright = "todo"
-            vendor = "todo"
+            copyright = "Copyright (C) 2025 Julian Hackinger"
+            vendor = "OverEngineer"
 
             modules("java.net.http", "java.sql")
             // gradle thinks we need this modules, but it works with the ones above for now
@@ -172,6 +185,10 @@ compose.desktop {
 
             windows {
                 menu = true
+            }
+
+            buildTypes.release.proguard {
+                configurationFiles.from("rules.pro")
             }
 
             // todo icons

@@ -1,0 +1,7 @@
+#! /usr/bin/env bash
+
+DIR="$(dirname "$(readlink -f "$0")")"
+cd $DIR
+./jre/bin/java -jar talelistener.jar "$@" &
+disown
+exit 0

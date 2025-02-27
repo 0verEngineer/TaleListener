@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=TaleListener
+Exec=org.overengineer.talelistener
+Icon=org.overengineer.talelistener
+Categories=Utility;Audio
