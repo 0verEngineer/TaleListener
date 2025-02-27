@@ -144,5 +144,5 @@ Project Link: [https://github.com/0verEngineer/TaleListener](https://github.com/
 [issues-shield]: https://img.shields.io/github/issues/0verEngineer/TaleListener.svg?style=for-the-badge
 [issues-url]: https://github.com/0verEngineer/TaleListener/issues
 [license-shield]: https://img.shields.io/github/license/0verEngineer/TaleListener.svg?style=for-the-badge
-[license-url]: https://github.com/0verEngineer/TaleListener/blob/master/LICENSE.txt
+[license-url]: https://github.com/0verEngineer/TaleListener/blob/master/LICENSE
 [product-screenshot]: images/screenshot.png
