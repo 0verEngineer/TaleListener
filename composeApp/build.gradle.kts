@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
 // todo ios version
-val appVersion = "0.0.1"
+val appVersion = "1.0.0"
 val appVersionCode = 1
 
 buildscript {
