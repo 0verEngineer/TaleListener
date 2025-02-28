@@ -25,6 +25,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.overengineer.talelistener.BuildConfig
 
 @Composable
 fun AdditionalComposable() {
@@ -46,8 +47,7 @@ fun AdditionalComposable() {
                 .padding(top = 16.dp)
                 .clickable { uriHandler.openUri("https://github.com/0verEngineer/TaleListener") }
                 .align(Alignment.CenterHorizontally),
-            // todo build variables
-            text = "TaleListener 0.0.1",
+            text = "${BuildConfig.appName} ${BuildConfig.version}",
             style = TextStyle(
                 fontFamily = FontFamily.Monospace,
                 textAlign = TextAlign.Center,

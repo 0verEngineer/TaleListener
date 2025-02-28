@@ -16,6 +16,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.path
 import okio.BufferedSource
+import org.overengineer.talelistener.BuildConfig
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfDataRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfMediaRepository
 import org.overengineer.talelistener.channel.audiobookshelf.common.api.AudioBookshelfSyncService
@@ -87,6 +88,7 @@ abstract class AudiobookshelfChannel(
         .fetchConnectionInfo()
         .map { connectionInfoResponseToConnectionInfo(it) }
 
-    // TODO: Add build config support instead of hardcoding
-    protected fun getClientName() = "TaleListener App 0.0.1"
+    protected fun getClientName(): String {
+        return "${BuildConfig.appName} ${BuildConfig.version}"
+    }
 }

@@ -9,6 +9,7 @@ import me.sujanpoudel.utils.paths.appCacheDirectory
 import me.sujanpoudel.utils.paths.appDataDirectory
 import okio.Path
 import okio.Path.Companion.toPath
+import org.overengineer.talelistener.BuildConfig
 import org.overengineer.talelistener.content.cache.converter.bookEntityToBook
 import org.overengineer.talelistener.content.cache.converter.bookEntityToDetailedItem
 import org.overengineer.talelistener.content.cache.converter.bookEntityToRecentBook
@@ -27,9 +28,7 @@ class CachedBookRepository(
     private val settings: TaleListenerSharedPreferences,
     private val dbHolder: DBHolder
 ) {
-
-    // Todo: Static value set on build from gradle
-    private val packageName = "org.overengineer.talelistener"
+    private val packageName = BuildConfig.packageName
 
     fun provideFilePath(bookId: String, fileId: String): Path {
         val path = appDataDirectory(packageName, true).toString() + "/$bookId/$fileId"

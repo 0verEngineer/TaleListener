@@ -1,5 +1,21 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+
+// todo ios version
+val appVersion = "1.0.0"
+val appVersionCode = 1
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath(libs.kotlin.gradle.plugin)
+        classpath(libs.buildkonfig.gradle.plugin)
+    }
+}
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,6 +25,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.completeKotlin)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.buildkonfig)
 }
 
 sqldelight {
@@ -118,8 +135,8 @@ kotlin {
 
             // Proguard
             // Eventually needed everywhere and not just desktop, check proguard
-            implementation("org.slf4j:slf4j-api:2.0.5")
-            implementation("org.slf4j:slf4j-simple:1.6.1")
+            implementation(libs.slf4j.api)
+            implementation(libs.slf4j.simple)
         }
     }
 }
@@ -132,8 +149,8 @@ android {
         applicationId = "org.overengineer.talelistener"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersion
     }
     packaging {
         resources {
@@ -160,7 +177,7 @@ compose.desktop {
         mainClass = "org.overengineer.talelistener.MainKt"
 
         nativeDistributions {
-            val osName = System.getProperty("os.name").toLowerCase()
+            val osName = System.getProperty("os.name").lowercase()
             val targetFormats = when {
                 osName.contains("win") -> listOf(TargetFormat.Exe)
                 osName.contains("mac") -> listOf(TargetFormat.Dmg)
@@ -170,8 +187,8 @@ compose.desktop {
             targetFormats(*targetFormats.toTypedArray())
             
             packageName = "TaleListener"
-            packageVersion = "1.0.0"
-            copyright = "Copyright (C) 2025 Julian Hackinger"
+            packageVersion = appVersion
+            copyright = "Copyright (C) 2024 - 2025 Julian Hackinger"
             vendor = "OverEngineer"
 
             modules("java.net.http", "java.sql")
@@ -204,5 +221,17 @@ compose.desktop {
                 iconFile.set(project.file("app_icon.png"))
             }*/
         }
+    }
+}
+
+buildkonfig {
+    packageName = "org.overengineer.talelistener"
+    exposeObjectWithName = "BuildConfig"
+
+    defaultConfigs {
+        buildConfigField(STRING, "packageName", "org.overengineer.talelistener")
+        buildConfigField(STRING, "appName", "TaleListener")
+        buildConfigField(STRING, "version", appVersion)
+        buildConfigField(INT, "versionCode", appVersionCode.toString())
     }
 }
