@@ -7,6 +7,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,7 +32,6 @@ class AudioPlayerDesktop(
     private var playbackSynchronizationService: PlaybackSynchronizationServiceDesktop? = null
     private var mediaPlayerFactory: MediaPlayerFactory? = null
     private var mediaPlayer: MediaPlayer? = null
-    private var isVlcFound = false
 
     private var timerJob: Job? = null
 
@@ -40,89 +42,94 @@ class AudioPlayerDesktop(
     private var isPausedEventFromSeekTo = false
 
     init {
-        // todo launch async because it is very slow on windows if not found
-        Napier.d("NativeDiscovery starting")
-        isVlcFound = NativeDiscovery().discover()
-        Napier.d("NativeDiscovery finished, found: $isVlcFound")
+        CoroutineScope(Dispatchers.IO).launch {
+            Napier.d("NativeDiscovery starting")
+            val vlcFound = NativeDiscovery().discover()
+            Napier.d("NativeDiscovery finished, found: $vlcFound")
 
-        if (isVlcFound) {
+            if (!vlcFound) {
+                _audioPlayerInitState.value = AudioPlayerInitState.DESKTOP_VLC_NOT_FOUND
+                return@launch
+            }
+
             mediaPlayerFactory = MediaPlayerFactory()
             mediaPlayer = mediaPlayerFactory!!.mediaPlayers().newMediaPlayer()
             playbackSynchronizationService = PlaybackSynchronizationServiceDesktop(
                 mediaChannel = mediaChannel,
                 sharedPreferences = preferences,
                 mediaPlayer = mediaPlayer!!,
-                audioPlayerDesktop = this
+                audioPlayerDesktop = this@AudioPlayerDesktop
             )
-        }
 
-        // todo check this out: https://github.com/JetBrains/compose-multiplatform/blob/master/experimental/components/VideoPlayer/library/src/desktopMain/kotlin/org/jetbrains/compose/videoplayer/DesktopVideoPlayer.kt
-        //  -> they work with DisposableEffect, etc.
-        mediaPlayer?.events()?.addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
-            override fun playing(mediaPlayer: MediaPlayer) {
-                if (isPlayingEventFromSeekTo) {
-                    isPlayingEventFromSeekTo = false
-                    return
-                }
-                Napier.d("playing event")
-                _isPlaying.value = true
-                playbackSynchronizationService?.playing()
+            if (mediaPlayerFactory == null || mediaPlayer == null) {
+                Napier.d("MediaPlayerFactory or MediaPlayer null")
+                return@launch
             }
 
-            override fun paused(mediaPlayer: MediaPlayer) {
-                if (isPausedEventFromSeekTo) {
-                    isPausedEventFromSeekTo = false
-                    return
-                }
-                Napier.d("paused event")
-                _isPlaying.value = false
-                playbackSynchronizationService?.paused()
-            }
+            _audioPlayerInitState.value = AudioPlayerInitState.SUCCESS
 
-            override fun finished(mediaPlayer: MediaPlayer?) {
-                val book = _playingBook.value ?: return
-
-                if (currentPlayingIndex >= book.files.size) {
-                    Napier.d("finished event - end of book reached")
-                    _isPlaying.value = false
-                    playbackSynchronizationService?.finished()
-
-                } else {
-                    currentPlayingIndex++
-                    mediaPlayer?.submit {
-                        val playing = mediaPlayer.media().play(getMrlForIndex(currentPlayingIndex, book))
-                        Napier.d("finished event - next playing: $playing")
+            CoroutineScope(Dispatchers.Main).launch {
+                // todo check this out: https://github.com/JetBrains/compose-multiplatform/blob/master/experimental/components/VideoPlayer/library/src/desktopMain/kotlin/org/jetbrains/compose/videoplayer/DesktopVideoPlayer.kt
+                //  -> they work with DisposableEffect, etc.
+                mediaPlayer?.events()?.addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
+                    override fun playing(mediaPlayer: MediaPlayer) {
+                        if (isPlayingEventFromSeekTo) {
+                            isPlayingEventFromSeekTo = false
+                            return
+                        }
+                        Napier.d("playing event")
+                        _isPlaying.value = true
+                        playbackSynchronizationService?.playing()
                     }
-                }
-            }
 
-            override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    val files = playingBook.value?.files
-                    if (files == null) {
-                        Napier.w("files is null, skipping update")
-                        return@launch
+                    override fun paused(mediaPlayer: MediaPlayer) {
+                        if (isPausedEventFromSeekTo) {
+                            isPausedEventFromSeekTo = false
+                            return
+                        }
+                        Napier.d("paused event")
+                        _isPlaying.value = false
+                        playbackSynchronizationService?.paused()
                     }
-                    val accumulated = files.take(currentPlayingIndex).sumOf { it.duration }
-                    val currentFilePosition = newTime / 1000.0
 
-                    _totalPosition.value = (accumulated + currentFilePosition)
-                }
+                    override fun finished(mediaPlayer: MediaPlayer?) {
+                        val book = _playingBook.value ?: return
+
+                        if (currentPlayingIndex >= book.files.size) {
+                            Napier.d("finished event - end of book reached")
+                            _isPlaying.value = false
+                            playbackSynchronizationService?.finished()
+
+                        } else {
+                            currentPlayingIndex++
+                            mediaPlayer?.submit {
+                                val playing = mediaPlayer.media().play(getMrlForIndex(currentPlayingIndex, book))
+                                Napier.d("finished event - next playing: $playing")
+                            }
+                        }
+                    }
+
+                    override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val files = playingBook.value?.files
+                            if (files == null) {
+                                Napier.w("files is null, skipping update")
+                                return@launch
+                            }
+                            val accumulated = files.take(currentPlayingIndex).sumOf { it.duration }
+                            val currentFilePosition = newTime / 1000.0
+
+                            _totalPosition.value = (accumulated + currentFilePosition)
+                        }
+                    }
+                })
+
+                // Restore default playback speed from preferences
+                val lastSpeed = preferences.getPlaybackSpeed()
+                _playbackSpeed.value = lastSpeed
+                mediaPlayer?.controls()?.setRate(lastSpeed)
             }
-        })
-
-        // Restore default playback speed from preferences
-        val lastSpeed = preferences.getPlaybackSpeed()
-        _playbackSpeed.value = lastSpeed
-        mediaPlayer?.controls()?.setRate(lastSpeed)
-    }
-
-    override fun getInitState(): AudioPlayerInitState {
-        Napier.d("getInitState()")
-        if (isVlcFound) {
-            return AudioPlayerInitState.SUCCESS
         }
-        return AudioPlayerInitState.DESKTOP_VLC_NOT_FOUND
     }
 
     override fun setPlaybackSpeed(factor: Float) {

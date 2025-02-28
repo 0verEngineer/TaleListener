@@ -17,6 +17,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.overengineer.talelistener.common.AudioPlayerInitState
 import org.overengineer.talelistener.domain.BookChapter
@@ -29,8 +31,7 @@ class PlayerViewModel(
 ) {
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private val _audioPlayerInitState = MutableStateFlow<AudioPlayerInitState?>(null)
-    val audioPlayerInitState: StateFlow<AudioPlayerInitState?> = _audioPlayerInitState.asStateFlow()
+    val audioPlayerInitState: StateFlow<AudioPlayerInitState> = audioPlayer.audioPlayerInitState
 
     val book: StateFlow<DetailedItem?> = audioPlayer.playingBook
 
@@ -54,10 +55,6 @@ class PlayerViewModel(
     val searchToken: StateFlow<String> = _searchToken.asStateFlow()
 
     val isPlaying: StateFlow<Boolean> = audioPlayer.isPlaying
-
-    init {
-        _audioPlayerInitState.value = audioPlayer.getInitState()
-    }
 
     fun expandPlayingQueue() {
         _playingQueueExpanded.value = true
@@ -115,4 +112,5 @@ class PlayerViewModel(
 
     fun previousTrack() = audioPlayer.previousTrack()
 
-    fun togglePlayPause() = audioPlayer.togglePlayPause()}
+    fun togglePlayPause() = audioPlayer.togglePlayPause()
+}

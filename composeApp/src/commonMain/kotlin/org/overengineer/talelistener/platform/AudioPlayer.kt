@@ -7,6 +7,7 @@
  * - Updated package statement and adjusted imports.
  * - Migrated to kotlin multiplatform
  * - Split the code into android specific (AudioPlayerAndroid) and common (AudioPlayer)
+ * - Added audioPlayerInitState
  */
 
 package org.overengineer.talelistener.platform
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import org.overengineer.talelistener.common.AudioPlayerInitState
 import org.overengineer.talelistener.content.TLMediaProvider
 import org.overengineer.talelistener.domain.CurrentEpisodeTimerOption
 import org.overengineer.talelistener.domain.DetailedItem
@@ -36,6 +38,9 @@ abstract class AudioPlayer(
     val mediaChannel: TLMediaProvider
 ) : IAudioPlayer {
     val playerScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    protected val _audioPlayerInitState = MutableStateFlow(AudioPlayerInitState.WAITING)
+    override val audioPlayerInitState: StateFlow<AudioPlayerInitState> get() = _audioPlayerInitState.asStateFlow()
 
     protected val _isPlaying = MutableStateFlow(false)
     override val isPlaying: StateFlow<Boolean> get() = _isPlaying.asStateFlow()
