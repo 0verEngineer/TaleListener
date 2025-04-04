@@ -118,7 +118,7 @@ Distributed under the GPLv3 license. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Julian Hackinger - dev@hackinger.io
+Julian Hackinger - dev@hackinger.net
 
 Project Link: [https://github.com/0verEngineer/TaleListener](https://github.com/0verEngineer/TaleListener)
 
